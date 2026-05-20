@@ -1,0 +1,537 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-20T19:35:50Z",
+  "root": "/path/to/selran-devloop",
+  "languages_detected": [
+    "bash",
+    "markdown",
+    "python",
+    "rust",
+    "typescript"
+  ],
+  "files_count": 31,
+  "directories": [],
+  "files": {
+    "README.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 57,
+      "size_bytes": 2330,
+      "purpose": "Selran DevLoop",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 5
+    },
+    "cli/README.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 14,
+      "size_bytes": 421,
+      "purpose": "cli/ \u2014 Phase 4",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 0
+    },
+    "docs/DESIGN.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 130,
+      "size_bytes": 6574,
+      "purpose": "Selran DevLoop \u2014 Design & Build Plan",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 13
+    },
+    "driver/README.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 13,
+      "size_bytes": 595,
+      "purpose": "driver/ \u2014 Phase 3",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 0
+    },
+    "sandbox/README.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 12,
+      "size_bytes": 483,
+      "purpose": "sandbox/ \u2014 Phase 1",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 0
+    },
+    "scripts/install-skills.sh": {
+      "kind": "other",
+      "language": "bash",
+      "loc": 24,
+      "size_bytes": 859,
+      "purpose": "",
+      "tags": [],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
+    },
+    "skills/app-audit/SKILL.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 640,
+      "size_bytes": 37159,
+      "purpose": "name: app-audit",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 53
+    },
+    "skills/app-audit/references/audit-log-template.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 203,
+      "size_bytes": 8449,
+      "purpose": "Templates: AUDIT_CHECKLIST.md and AUDIT_LOG.md",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 20
+    },
+    "skills/app-audit/references/checklist-categories.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 238,
+      "size_bytes": 14213,
+      "purpose": "Standard Audit Checklist Categories",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 12
+    },
+    "skills/app-audit/references/live-panel-streamlit.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 315,
+      "size_bytes": 11041,
+      "purpose": "Live Audit Panel \u2014 Streamlit UI",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 8
+    },
+    "skills/app-audit/references/severity-examples.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 119,
+      "size_bytes": 6574,
+      "purpose": "Severity Grading: Examples",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 7
+    },
+    "skills/audit-fix/SKILL.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 340,
+      "size_bytes": 19978,
+      "purpose": "name: audit-fix",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 24
+    },
+    "skills/audit-fix/references/fix-ordering.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 213,
+      "size_bytes": 10311,
+      "purpose": "Fix Ordering",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 15
+    },
+    "skills/audit-fix/references/per-fix-verification.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 272,
+      "size_bytes": 10510,
+      "purpose": "Per-Fix Verification",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 17
+    },
+    "skills/audit-fix/references/regression-detection.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 215,
+      "size_bytes": 9396,
+      "purpose": "Regression Detection",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 15
+    },
+    "skills/cartographer/SKILL.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 467,
+      "size_bytes": 24330,
+      "purpose": "name: cartographer",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 29
+    },
+    "skills/cartographer/references/_build.py": {
+      "kind": "source",
+      "language": "python",
+      "loc": 890,
+      "size_bytes": 35572,
+      "purpose": "!/usr/bin/env python3",
+      "tags": [],
+      "spec_refs": [
+        {
+          "ref": "\u00a78.1",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a78.2",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a76",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a74.3",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a73.1",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a73.2",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a73.3",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a73.6",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a73.7",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a73.5",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a75",
+          "source": "explicit",
+          "confidence": 1.0
+        },
+        {
+          "ref": "\u00a73",
+          "source": "explicit",
+          "confidence": 1.0
+        }
+      ],
+      "entry_point": false,
+      "test_file": false
+    },
+    "skills/cartographer/references/build-stages.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 303,
+      "size_bytes": 15396,
+      "purpose": "Build Stages (v0.3.0)",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 9
+    },
+    "skills/cartographer/references/codemap-schemas.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 410,
+      "size_bytes": 16607,
+      "purpose": "Codemap JSON Schemas",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 6
+    },
+    "skills/cartographer/references/entry-point-patterns.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 110,
+      "size_bytes": 4343,
+      "purpose": "Entry-Point Patterns",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 10
+    },
+    "skills/cartographer/references/extraction-by-language.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 228,
+      "size_bytes": 11845,
+      "purpose": "Extraction by Language",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 11
+    },
+    "skills/cartographer/references/spec-extraction.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 170,
+      "size_bytes": 8821,
+      "purpose": "Spec_refs Extraction (v0.3.0)",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 9
+    },
+    "skills/cartographer/references/tag-vocabulary.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 141,
+      "size_bytes": 8556,
+      "purpose": "Tag Vocabulary",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 7
+    },
+    "skills/pre-commit-verification/SKILL.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 190,
+      "size_bytes": 12092,
+      "purpose": "name: pre-commit-verification",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 20
+    },
+    "skills/pre-commit-verification/references/harness/dev_prod_matrix.sh": {
+      "kind": "other",
+      "language": "bash",
+      "loc": 64,
+      "size_bytes": 2141,
+      "purpose": "",
+      "tags": [],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
+    },
+    "skills/pre-commit-verification/references/harness/env_probe.sh": {
+      "kind": "other",
+      "language": "bash",
+      "loc": 62,
+      "size_bytes": 2461,
+      "purpose": "",
+      "tags": [],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
+    },
+    "skills/pre-commit-verification/references/harness/migration_idempotency.sh": {
+      "kind": "other",
+      "language": "bash",
+      "loc": 76,
+      "size_bytes": 2682,
+      "purpose": "",
+      "tags": [],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
+    },
+    "skills/pre-commit-verification/references/harness/onboarding_clickthrough.spec.ts": {
+      "kind": "source",
+      "language": "typescript",
+      "loc": 58,
+      "size_bytes": 2692,
+      "purpose": "Smoke test [9]: UX \u2014 onboarding click-through.",
+      "tags": [
+        "frontend"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
+    },
+    "skills/pre-commit-verification/references/harness/provider_mock_test.rs": {
+      "kind": "source",
+      "language": "rust",
+      "loc": 74,
+      "size_bytes": 3228,
+      "purpose": "Smoke test [8]: external APIs \u2014 fixture-based provider tests (R2.11.1).",
+      "tags": [
+        "rust",
+        "test"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": true
+    },
+    "skills/pre-commit-verification/references/harness/smoke_http_health.rs": {
+      "kind": "source",
+      "language": "rust",
+      "loc": 146,
+      "size_bytes": 5559,
+      "purpose": "Smoke test [1+4]: runtime + build-graph.",
+      "tags": [
+        "rust"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
+    },
+    "skills/pre-commit-verification/references/harness/webview_e2e.spec.ts": {
+      "kind": "source",
+      "language": "typescript",
+      "loc": 59,
+      "size_bytes": 2680,
+      "purpose": "Smoke test [5]: browser quirks \u2014 headless webview e2e.",
+      "tags": [
+        "frontend"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
+    }
+  }
+}

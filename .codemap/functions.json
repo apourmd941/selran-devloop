@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-20T19:35:50Z",
+  "files": {
+    "skills/pre-commit-verification/references/harness/provider_mock_test.rs": {
+      "functions": [
+        {
+          "name": "provider_token_refresh_sends_correct_request_and_handles_200",
+          "qualified_name": "skills::pre-commit-verification::references::harness::provider_mock_test::provider_token_refresh_sends_correct_request_and_handles_200",
+          "signature": "async fn provider_token_refresh_sends_correct_request_and_handles_200()",
+          "loc_range": [
+            24,
+            0
+          ],
+          "calls": [],
+          "called_by": [],
+          "tags": [
+            "rust",
+            "test"
+          ],
+          "spec_refs": [],
+          "exported": false,
+          "last_modified_commit": "e41db2d5fc2501bd3107888414713644c9371418"
+        },
+        {
+          "name": "provider_handles_401_without_panicking",
+          "qualified_name": "skills::pre-commit-verification::references::harness::provider_mock_test::provider_handles_401_without_panicking",
+          "signature": "async fn provider_handles_401_without_panicking()",
+          "loc_range": [
+            51,
+            0
+          ],
+          "calls": [],
+          "called_by": [],
+          "tags": [
+            "rust",
+            "test"
+          ],
+          "spec_refs": [],
+          "exported": false,
+          "last_modified_commit": "e41db2d5fc2501bd3107888414713644c9371418"
+        }
+      ]
+    },
+    "skills/pre-commit-verification/references/harness/smoke_http_health.rs": {
+      "functions": [
+        {
+          "name": "health_responds_200_with_cors_and_logs",
+          "qualified_name": "skills::pre-commit-verification::references::harness::smoke_http_health::health_responds_200_with_cors_and_logs",
+          "signature": "fn health_responds_200_with_cors_and_logs()",
+          "loc_range": [
+            29,
+            0
+          ],
+          "calls": [],
+          "called_by": [],
+          "tags": [
+            "rust"
+          ],
+          "spec_refs": [],
+          "exported": false,
+          "last_modified_commit": "e41db2d5fc2501bd3107888414713644c9371418"
+        },
+        {
+          "name": "probe_health",
+          "qualified_name": "skills::pre-commit-verification::references::harness::smoke_http_health::probe_health",
+          "signature": "fn probe_health(url: &str, origin: &str) -> Result<HealthProbe, String>",
+          "loc_range": [
+            101,
+            0
+          ],
+          "calls": [],
+          "called_by": [],
+          "tags": [
+            "rust"
+          ],
+          "spec_refs": [],
+          "exported": false,
+          "last_modified_commit": "e41db2d5fc2501bd3107888414713644c9371418"
+        }
+      ]
+    }
+  },
+  "build_metadata": {
+    "build_method": "py-script-richer",
+    "stages_run": [
+      "1_tags",
+      "2_spec_refs",
+      "3_qualified_names"
+    ]
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-20T19:35:50Z",
+  "graph": {
+    "README.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "cli/README.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "docs/DESIGN.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "driver/README.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "sandbox/README.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "scripts/install-skills.sh": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/app-audit/SKILL.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/app-audit/references/audit-log-template.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/app-audit/references/checklist-categories.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/app-audit/references/live-panel-streamlit.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/app-audit/references/severity-examples.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/audit-fix/SKILL.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/audit-fix/references/fix-ordering.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/audit-fix/references/per-fix-verification.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/audit-fix/references/regression-detection.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/cartographer/SKILL.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/cartographer/references/_build.py": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/cartographer/references/build-stages.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/cartographer/references/codemap-schemas.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/cartographer/references/entry-point-patterns.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/cartographer/references/extraction-by-language.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/cartographer/references/spec-extraction.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/cartographer/references/tag-vocabulary.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/pre-commit-verification/SKILL.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/pre-commit-verification/references/harness/dev_prod_matrix.sh": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/pre-commit-verification/references/harness/env_probe.sh": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/pre-commit-verification/references/harness/migration_idempotency.sh": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/pre-commit-verification/references/harness/onboarding_clickthrough.spec.ts": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "skills/pre-commit-verification/references/harness/provider_mock_test.rs": {
+      "imports_from": [
+        {
+          "path": "wiremock::matchers",
+          "symbols": [
+            "header",
+            "method",
+            "path"
+          ],
+          "kind": "use"
+        },
+        {
+          "path": "wiremock",
+          "symbols": [
+            "Mock",
+            "MockServer",
+            "ResponseTemplate"
+          ],
+          "kind": "use"
+        }
+      ],
+      "imported_by": []
+    },
+    "skills/pre-commit-verification/references/harness/smoke_http_health.rs": {
+      "imports_from": [
+        {
+          "path": "std::io",
+          "symbols": [
+            "BufRead",
+            "BufReader"
+          ],
+          "kind": "use"
+        },
+        {
+          "path": "std::process",
+          "symbols": [
+            "Command",
+            "Stdio"
+          ],
+          "kind": "use"
+        },
+        {
+          "path": "std::time",
+          "symbols": [
+            "Duration",
+            "Instant"
+          ],
+          "kind": "use"
+        },
+        {
+          "path": "std::io::Write",
+          "symbols": [],
+          "kind": "use"
+        },
+        {
+          "path": "std::net::TcpStream",
+          "symbols": [],
+          "kind": "use"
+        }
+      ],
+      "imported_by": []
+    },
+    "skills/pre-commit-verification/references/harness/webview_e2e.spec.ts": {
+      "imports_from": [],
+      "imported_by": []
+    }
+  }
+}
