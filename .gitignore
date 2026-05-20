@@ -9,3 +9,4 @@ dist/
 build/
 *.log
 .codemap/_call_graph_cache.json
+.devloop/last-run.json

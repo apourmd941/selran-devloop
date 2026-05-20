@@ -98,6 +98,20 @@ run() {
     run_live_loop "$wt" || rc=$?
   fi
 
+  # ---- preserve any uncommitted run output --------------------------------
+  # audit-fix commits each *code fix* itself, but the codemap refresh + AUDIT_LOG
+  # findings are run artifacts it leaves uncommitted. A budget- or stuck-stopped
+  # run (or an audit-only run that found issues but applied no fixes) would then
+  # have ZERO commits → no PR → the findings are lost when the worktree is
+  # deleted. Bundle whatever's left into one commit so the run is always
+  # reviewable. Live only: dry-run must stay commit-free so its branch is cleaned.
+  if [[ $dry -eq 0 && -n "$(git -C "$wt" status --porcelain)" ]]; then
+    git -C "$wt" add -A
+    git -C "$wt" -c user.email=devloop@local -c user.name="DevLoop" \
+      commit -q -m "devloop: audit log + codemap refresh (run artifacts)" \
+      && note "preserved uncommitted run output (AUDIT_LOG + codemap) as a commit"
+  fi
+
   # ---- assemble the run report --------------------------------------------
   local report="$wt/.devloop/last-run.json"
   local commits; commits="$(git -C "$wt" log --oneline "$base..$branch" 2>/dev/null || true)"

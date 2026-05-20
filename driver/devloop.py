@@ -54,7 +54,13 @@ class LoopConfig:
     repo: Path
     scope: str = "the original scope of the latest AUDIT_LOG round"
     max_iterations: int = 10
-    max_tokens: int = 2_000_000
+    # COST is the meaningful cap (checked between turns). A single audit or fix
+    # turn on a real repo runs ~$3-8, so set this knowing a full audit+fix+re-audit
+    # cycle is ~$15-25. The token cap is a high secondary safety only — cache-read
+    # tokens inflate the raw count (one audit turn was 8M tokens but $5.81), so a
+    # low token cap trips spuriously.
+    max_cost_usd: float = 15.0
+    max_tokens: int = 30_000_000
     max_wall_clock_minutes: int = 120
     stuck_no_progress_iters: int = 2          # stop if open count doesn't drop for N iters
     never_touch_branches: tuple[str, ...] = ("main", "master")
@@ -67,6 +73,7 @@ class LoopConfig:
             data = _read_toml(path)
             loop = data.get("loop", {})
             cfg.max_iterations = int(loop.get("max_iterations", cfg.max_iterations))
+            cfg.max_cost_usd = float(loop.get("max_cost_usd", cfg.max_cost_usd))
             cfg.max_tokens = int(loop.get("max_tokens", cfg.max_tokens))
             cfg.max_wall_clock_minutes = int(
                 loop.get("max_wall_clock_minutes", cfg.max_wall_clock_minutes)
@@ -86,6 +93,7 @@ class LoopConfig:
 @dataclass
 class Budget:
     max_iterations: int
+    max_cost_usd: float
     max_tokens: int
     max_wall_clock_s: float
     started_at: float = field(default_factory=time.monotonic)
@@ -104,6 +112,10 @@ class Budget:
             self.cost_usd += float(cost)
 
     def exhausted(self) -> str | None:
+        # Checked BETWEEN turns — a single turn can overshoot by its own cost
+        # (~$3-8), so the effective stop is the cap plus up to one turn.
+        if self.cost_usd >= self.max_cost_usd:
+            return f"max_cost (${self.max_cost_usd:.2f}) reached — spent ${self.cost_usd:.2f}"
         if self.iterations >= self.max_iterations:
             return f"max_iterations ({self.max_iterations}) reached"
         if self.tokens >= self.max_tokens:
@@ -197,7 +209,10 @@ def _summarize_tool(name: str, inp: dict | None) -> str:
     if name == "Glob":
         return str(inp.get("pattern", ""))
     if name == "Skill":
-        return str(inp.get("name") or inp.get("command", ""))
+        # the Skill tool's input key is "skill" (older builds used "name"/"command")
+        label = inp.get("skill") or inp.get("name") or inp.get("command") or ""
+        args = inp.get("args")
+        return f"{label} {args}".strip() if args else str(label)
     if name == "Task":
         return str(inp.get("description", ""))[:80]
     return ", ".join(f"{k}={str(v)[:40]}" for k, v in list(inp.items())[:2])
@@ -269,11 +284,13 @@ def assert_safe_branch(cfg: LoopConfig) -> str:
 async def run_loop(cfg: LoopConfig, dry_run: bool) -> dict:
     budget = Budget(
         max_iterations=cfg.max_iterations,
+        max_cost_usd=cfg.max_cost_usd,
         max_tokens=cfg.max_tokens,
         max_wall_clock_s=cfg.max_wall_clock_minutes * 60,
     )
     branch = assert_safe_branch(cfg)
-    print(f"[devloop] repo={cfg.repo} branch={branch} dry_run={dry_run}")
+    print(f"[devloop] repo={cfg.repo} branch={branch} dry_run={dry_run} "
+          f"budget=${cfg.max_cost_usd:.0f}")
 
     stub_state = {"open": 5}
     history: list[dict] = []
