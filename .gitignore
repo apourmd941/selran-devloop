@@ -1,0 +1,11 @@
+.DS_Store
+target/
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+build/
+*.log
+.codemap/_call_graph_cache.json
