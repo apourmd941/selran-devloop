@@ -4,67 +4,79 @@
 **Goal:** prove `backend-rs` builds and boots on Linux in a container (the gate that
 de-risks the whole sandbox approach).
 
-## Status: build tooling done; executable gate blocked on a container runtime
+## Status: ✅ PASS
+
+The v4 backend builds, links, migrates, boots, and answers `/api/health` inside the
+disposable Linux container:
+
+```
+=== [4/4] boot + health ===
+{"status":"ok","version":"4.0.0","phase":"2 — Identity + OAuth"}
+PASS: backend builds and boots on Linux.
+```
 
 | Sub-step | Status |
 |---|---|
-| Sandbox `Dockerfile` written | ✅ done |
-| `validate-linux.sh` (staged gate) written | ✅ done |
-| Core risk investigated (`selran-crypto` macOS/Linux split) | ✅ resolved by inspection + cross-check |
-| Actually build + boot in a Linux container | ⛔ blocked — **no container runtime installed** |
+| Sandbox `Dockerfile` | ✅ done |
+| `validate-linux.sh` (staged gate, cached, log-capturing) | ✅ done |
+| `selran-crypto` compiles on Linux (the macOS/Linux keychain split) | ✅ confirmed on real Linux |
+| `backend-rs` compiles + links on Linux | ✅ confirmed |
+| backend boots + `/api/health` responds | ✅ confirmed |
 
-No `docker`, `podman`, `colima`, `orbstack`, `lima`, `nerdctl`, or `finch` is present
-on the host, so the boot+health gate cannot run yet. The Dockerfile and validation
-script are ready for the moment a runtime exists.
+## The core risk is fully resolved
 
-## The core risk is resolved (by inspection + cross-compile check)
-
-The flagged risk was that `selran-crypto`'s macOS-Keychain code (`cfg(target_os =
-"macos")` → `security-framework`) might leave a Linux gap that blocks the backend on
-Linux. It does not:
-
-- `selran-crypto/src/keychain/mod.rs` dispatches by `cfg(target_os)`:
-  - **macOS** → `security-framework` (`keychain/macos.rs`)
-  - **Linux / Windows** → `keyring` 3.x (`keychain/keyring_backend.rs`)
-  - plus a fallback for other OSes
-- A cross-compile check from macOS (`cargo check -p selran-crypto --target
-  aarch64-unknown-linux-gnu`) compiled all the pure-Rust crypto (hkdf, aes, argon2,
-  aes-gcm, …) cleanly. It stopped only at **`libdbus-sys`**, the C D-Bus binding
-  pulled in by `keyring`'s `sync-secret-service` feature — and that stop is a
-  *cross-compilation* limitation (pkg-config can't cross from macOS without a Linux
-  sysroot), **not** a code problem.
-
-**Conclusion:** the Rust is Linux-clean. The Linux keychain path has two real
-Linux requirements, both now handled in the Dockerfile:
-
-1. **Build:** `libdbus-1-dev` + `pkg-config` (so `libdbus-sys` compiles). Added.
-2. **Runtime:** a **secret-service daemon** (D-Bus). A headless container has none,
-   so the app would compile but fail at boot reaching the keychain. The Dockerfile
-   installs `dbus` + `gnome-keyring`; `validate-linux.sh` starts a throwaway
+`selran-crypto` is properly cross-platform (`cfg(target_os)`: macOS →
+security-framework, Linux → keyring/sync-secret-service, Windows → windows-native,
++ fallback). It compiled and ran on real Linux. The two Linux requirements are both
+handled in the image:
+1. **Build:** `libdbus-1-dev` + `pkg-config` (so `libdbus-sys` builds).
+2. **Runtime:** a secret-service daemon — `validate-linux.sh` starts a throwaway
    `dbus-run-session` + `gnome-keyring-daemon --unlock` (empty password, never a
-   real secret) before launching the backend.
+   real secret).
 
-   *Longer-term option:* add a `file`-keystore feature to `selran-crypto` for
-   sandbox/CI use (matches the `keystore = "file"` intent in
-   `templates/autoloop.toml.example`). Cleaner than running a keyring daemon, but
-   it's a code change to the target — deferred unless the daemon approach proves flaky.
+## Boot blockers cleared (one per iteration)
 
-## What "complete Phase 1" still needs
+The staged gate + backend-log capture pinpointed each, in order:
 
-A container runtime. To finish the gate:
+| # | Failure | Fix |
+|---|---|---|
+| 1 | `DATABASE_URL is not set` | set it in the boot stage |
+| 2 | health never connected — `BACKEND_RS_BIND` defaults to `127.0.0.1:0` (random port) | pin `127.0.0.1:8765` |
+| 3 | `password authentication failed for user "postgres"` | `pg_hba.conf` is first-match-wins; rewrite auth methods to `trust` (throwaway DB) |
+| 4 | `migration error: type "vector" does not exist` | build + install **pgvector** (v0.8.0) into the image |
+
+## v4 finding to carry into the audit (NOT a sandbox issue)
+
+**Migration 1 hard-requires the `vector` type, contradicting the §14.3 graceful-
+degradation claim.** At boot v4 logs:
+
+```
+INFO  pgvector unavailable: extension "vector" is not available — vector features
+      will be runtime-disabled (§14.3)
+fatal: migration error: while executing migration 1: type "vector" does not exist
+```
+
+So v4 *says* it will runtime-disable vector features when pgvector is absent, but the
+migration then fails hard on the `vector` type — meaning on any Postgres without
+pgvector, v4 cannot boot at all. The graceful-degradation path and the migration
+disagree. This is a real spec-vs-reality finding for a later app-audit run
+(Operational readiness / Spec compliance). The sandbox sidesteps it by providing
+pgvector; the inconsistency in v4 remains.
+
+## How to run the gate
 
 ```bash
-brew install colima docker && colima start    # lightest option
 ./sandbox/validate-linux.sh /Users/aidin/NeutronDev/selran-mail-v4
 ```
 
-Expected first real failure modes to watch (now that the crypto risk is cleared):
-- Postgres bring-up inside the container (the migration smoke needs a live DB)
-- the backend's launch command + health URL (wire from the repo's `autoloop.toml`)
-- the secret-service handshake at boot
+Requires a container runtime (docker/podman). Build cache persists in the
+`devloop-cargo-registry` and `devloop-cargo-target` volumes, so re-runs after the
+first are incremental and fast.
 
-## Other notes
+## Notes
 
 - The cross-check left a `target/aarch64-unknown-linux-gnu/` dir under
-  `selran-mail-v4` and added the rustup target. Harmless; can be removed with
-  `cargo clean --target aarch64-unknown-linux-gnu`.
+  `selran-mail-v4` and added the `aarch64-unknown-linux-gnu` rustup target. Harmless;
+  removable with `cargo clean --target aarch64-unknown-linux-gnu`.
+- The boot uses a throwaway Postgres (trust auth) and a throwaway keychain. No real
+  secrets enter the sandbox.

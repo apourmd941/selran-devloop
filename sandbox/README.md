@@ -11,20 +11,23 @@ repo's branch into `/work` at runtime (Phase 3).
   build → boot + health). Needs a container runtime.
 - `PHASE1-FINDINGS.md` — what the validation surfaced.
 
-## Status
+## Status: ✅ PASS
 
-Build tooling done. The **core risk is resolved**: `selran-crypto` is properly
-cross-platform (macOS → security-framework, Linux → keyring/secret-service); a
-cross-compile check confirmed the Rust compiles for Linux. The Linux keychain path
-needs `libdbus-1-dev` (build, now in the Dockerfile) + a secret-service daemon
-(runtime, started by `validate-linux.sh`).
+The v4 backend builds, links, migrates, boots, and answers `/api/health` inside the
+container:
 
-The **executable gate (build + boot in a container) is blocked** — no container
-runtime is installed on the host. To finish:
+```
+{"status":"ok","version":"4.0.0","phase":"2 — Identity + OAuth"}
+PASS: backend builds and boots on Linux.
+```
+
+Run it:
 
 ```bash
-brew install colima docker && colima start
 ./sandbox/validate-linux.sh /Users/aidin/NeutronDev/selran-mail-v4
 ```
 
-See `PHASE1-FINDINGS.md` and `docs/DESIGN.md` §5 Phase 1.
+Four boot blockers were cleared along the way (DATABASE_URL, random bind port,
+pg_hba auth, pgvector) — see `PHASE1-FINDINGS.md` for the full table and the one v4
+finding (migration 1 hard-requires the `vector` type despite the §14.3
+graceful-degradation claim) to carry into a later audit.
