@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T20:36:02Z",
+  "generated_at": "2026-05-20T20:39:14Z",
   "root": "/path/to/selran-devloop",
   "languages_detected": [
     "bash",
@@ -10,14 +10,14 @@
     "text",
     "typescript"
   ],
-  "files_count": 39,
+  "files_count": 41,
   "directories": [],
   "files": {
     "README.md": {
       "kind": "documentation",
       "language": "markdown",
-      "loc": 57,
-      "size_bytes": 2330,
+      "loc": 71,
+      "size_bytes": 3101,
       "purpose": "Selran DevLoop",
       "tags": [
         "documentation",
@@ -60,6 +60,22 @@
       "test_file": false,
       "doc_class": "informational",
       "section_count": 13
+    },
+    "docs/ONBOARDING.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 68,
+      "size_bytes": 2664,
+      "purpose": "Onboard a new repo to DevLoop",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 5
     },
     "driver/README.md": {
       "kind": "documentation",
@@ -162,6 +178,22 @@
       "test_file": false,
       "doc_class": "informational",
       "section_count": 5
+    },
+    "sandbox/PHASE5-FINDINGS.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 64,
+      "size_bytes": 2867,
+      "purpose": "Phase 5 \u2014 Findings (repeatability)",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 4
     },
     "sandbox/README.md": {
       "kind": "documentation",

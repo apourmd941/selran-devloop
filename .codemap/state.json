@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
   "cartographer_version": "0.4.1",
-  "created_at": "2026-05-20T20:36:03Z",
-  "last_full_build_at": "2026-05-20T20:36:03Z",
-  "last_full_build_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
-  "last_refresh_at": "2026-05-20T20:36:03Z",
-  "last_refresh_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+  "created_at": "2026-05-20T20:39:15Z",
+  "last_full_build_at": "2026-05-20T20:39:15Z",
+  "last_full_build_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
+  "last_refresh_at": "2026-05-20T20:39:15Z",
+  "last_refresh_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
   "build_metadata": {
-    "files_processed": 39,
+    "files_processed": 41,
     "languages_detected": [
       "bash",
       "markdown",
@@ -36,199 +36,209 @@
   ],
   "per_file_state": {
     "README.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
-      "content_hash": "sha256:2e7887d849fe95b4d14c769ba8eabb60cdc96855516b68f6a06bf8ce5608407a",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
+      "content_hash": "sha256:d001e454210e954aa57f0a072836354d92d610cc0ae529aab77c135583786300",
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "cli/README.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:174cce7bc6ce6d33c8972a5c493a71dc0171a26f0b51dda80eec627bd927397d",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "docs/DESIGN.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:4845034cd76d64a1e6715a947435371b4666d45177959601918ac0be6a7d7b0f",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
+    },
+    "docs/ONBOARDING.md": {
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
+      "content_hash": "sha256:ed4f737905ff3425a472d0bf50f857c72971bc534fa64d18513270b284396e3e",
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "driver/README.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:dca7f012dcf8ecdbcca9d5504545470c0607e3bb7bbd7a5e8c037c5ba9e4009a",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "driver/devloop.py": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:7e19ff40fcd1c5441e29cdd8ce80e1fce9e8fe284dbb2266c40fdc292fce19d6",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "driver/requirements.txt": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:3b7c61b4e74c6fe39f0a416dd0a696ca1abee8b328905b500310da93a721c453",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "sandbox/PHASE1-FINDINGS.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:ca238ead6de6878c0f14f164dd52e2674faf27e0a5582a30089c0f911088af91",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "sandbox/PHASE2-FINDINGS.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:509cc18c38d06386f9885c37b3aaa282b89696bfc20ca789e3c757f05d0b0d62",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "sandbox/PHASE3-FINDINGS.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:c862652d61d73aa4ee3339c22c3e4aa6f27d6d8afa8bb50c6702c82550b16a98",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "sandbox/PHASE4-FINDINGS.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:6c8b560843e8e3b79d4c38f88f201b79ceb68f31ac25e4f8d76049f3877950d1",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
+    },
+    "sandbox/PHASE5-FINDINGS.md": {
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
+      "content_hash": "sha256:e386ace36600478b44bd779e2a1a76a2ea7a2e19c332728afb25bf09c25381df",
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "sandbox/README.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:4821e75e137f35a8776fb7e478c800631e047f0d8781550b7803fb430475b73f",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "sandbox/run-smoke.sh": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:d28610ebfced778adfe3130f74071b286d05063849dee11ec2afb03d281dfd29",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "sandbox/validate-linux.sh": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:ce264ee2cfaf0572d09b4bf97007b80f95fdb5a6051d08eb336e7e51bb8800c7",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "scripts/install-skills.sh": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:447dbc689569a5dfad8d8679ede6822b056b8b338a9892d9f2b9657f1b7108d9",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "skills/app-audit/SKILL.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:42aa6a006e12c6fe2c9276be865acaae985fc7c5ccb49e2f56a8f807f5791d60",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "skills/app-audit/references/audit-log-template.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:511e854963285eabb9200aa7b1acbcdafc3bb9a2804d97cf5218700e23449ca8",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "skills/app-audit/references/checklist-categories.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:ac35fa08208dbc7a4211c0259d6ca377886918f490b978669421e0dafae6ca68",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "skills/app-audit/references/live-panel-streamlit.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:2f0f9e56a5f3f8441db8864fee980c6c0689f6c49b35f45f0a69424b5e863285",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "skills/app-audit/references/severity-examples.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:2830b01bbdae8f52227b5eb6fcb1dc24543e2928d38dfb767921e6d1388d72d7",
-      "last_modified_in_git": "2026-05-20T20:36:02Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "skills/audit-fix/SKILL.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:173df36b5a0b26ccf2942ae48ff8fe9421594ec5f75664595e6fef93966e855e",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:14Z"
     },
     "skills/audit-fix/references/fix-ordering.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:3bd6117189cc86b9e5b5cfe900630526d0ab73be6e2c194e6a48326c766235a9",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/audit-fix/references/per-fix-verification.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:8e57e37e5cda8c894b3768d017ea896de5cda1bc28875b7ee53ef7b8f62b6c44",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/audit-fix/references/regression-detection.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:4e2c752228a85725fa41e849dcae656eb1d111d4de30eb05d1ba102040ec87fe",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/cartographer/SKILL.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:213a31d0477c5b46d155330ac8be2a092890ea7923f17cbff903af26e5f2f2e0",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/cartographer/references/_build.py": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:e21661cb9452c3a77bf1d3b66c342457751b0bb4f45f21f6398d3d3107879ffc",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/cartographer/references/build-stages.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:e379a750e7443fbae3180fc2ea127cbd387db5323d0e64921ee28ec108adc3d4",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/cartographer/references/codemap-schemas.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:700d58dd1005ce11cf66f09a34a3fffee1eb9d091077c7ecc56202bf10526131",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/cartographer/references/entry-point-patterns.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:b3869580138741106afae59c5d6f5720d1494ae8b6059039c458d01af150cfb0",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/cartographer/references/extraction-by-language.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:b1cfd7ec4aa3dd8f153b53c74e70616eb71fdb1f2caa54fa8eb28016a8bf46f7",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/cartographer/references/spec-extraction.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:696bcefd393dd5c361f1be94618a94b2193b2d83dc534cea0c7754f563cab46b",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/cartographer/references/tag-vocabulary.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:a3edf7baed1b3b1c1b17fd583466a9273f5b1ae8c2467277c335ccf00aa36c65",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/pre-commit-verification/SKILL.md": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:6c5e31732c86f3c41306ee7f3242d1d74bd58f628428d07b89e46b925a5dde89",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/pre-commit-verification/references/harness/dev_prod_matrix.sh": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:c2bf19442d7fca4250f77eab96004a5b0dd1cc01c94021e1e21d37304bcca918",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/pre-commit-verification/references/harness/env_probe.sh": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:8666a7325f3cbbaa5b81de95cb1428b36d55cbfc638be9bddafac9c0280914e6",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/pre-commit-verification/references/harness/migration_idempotency.sh": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:1944d14523e9647fe1463c55221132ccd562aa0322deaa1ec18b3089dc271fc7",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/pre-commit-verification/references/harness/onboarding_clickthrough.spec.ts": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:96edfa9848522b3aebe3c4a8a5372afbd8aabaa942c1b2a744302ee3c9712c69",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/pre-commit-verification/references/harness/provider_mock_test.rs": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:7b6c0ee09037d6bc0ba239cf5a120e1e3a40996aed7877d2295f200885c06764",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/pre-commit-verification/references/harness/smoke_http_health.rs": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:049243f9fd82fd1308d71774eda7e76447ae33b7602984da2726fea866c3fa17",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     },
     "skills/pre-commit-verification/references/harness/webview_e2e.spec.ts": {
-      "last_refreshed_commit": "eec70fbbb84e762548de184606f109103a3d86fc",
+      "last_refreshed_commit": "e68f45f38b93de65482aac1e89b02e18e1186d42-dirty",
       "content_hash": "sha256:4e1534330b3f2c0ecbbdb009e4c6491a0776f0aa9197647ca90f0a6347388bf2",
-      "last_modified_in_git": "2026-05-20T20:36:03Z"
+      "last_modified_in_git": "2026-05-20T20:39:15Z"
     }
   }
 }

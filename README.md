@@ -46,7 +46,21 @@ docs/DESIGN.md           the full build plan + architecture decisions
 
 ## Status
 
-Scaffold only. See `docs/DESIGN.md` for the phased build plan and current state.
+Build-out complete — `cartographer → pre-commit/harness → app-audit → audit-fix →
+driver → autoloop`. All phases built and verified:
+
+| Phase | What | State |
+|---|---|---|
+| 1 | Sandbox image + Linux boot gate | ✅ PASS (v4 backend builds + boots in the container) |
+| 2 | Oracle layer (`make smoke`) | ✅ backend verified; frontend scaffolded (Tauri caveat) |
+| 3 | Agent SDK loop driver | ✅ orchestration verified via `--dry-run` |
+| 4 | `autoloop` run wrapper + PR gate | ✅ orchestration verified via `--dry-run` |
+| 5 | Repeatability | ✅ proven on your-python-app (Python) — config-only |
+
+The one outstanding item is the first **live** end-to-end run, gated on
+`ANTHROPIC_API_KEY` in the sandbox + real API spend (the same kind of gate as
+Phase 1's container runtime). See `sandbox/PHASE{1..5}-FINDINGS.md` and
+`docs/ONBOARDING.md`.
 
 ## Hard rules (carried into every phase)
 
