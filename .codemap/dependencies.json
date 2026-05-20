@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T20:06:07Z",
+  "generated_at": "2026-05-20T20:20:02Z",
   "graph": {
     "README.md": {
       "imports_from": [],
@@ -22,7 +22,15 @@
       "imports_from": [],
       "imported_by": []
     },
+    "sandbox/PHASE2-FINDINGS.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
     "sandbox/README.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "sandbox/run-smoke.sh": {
       "imports_from": [],
       "imported_by": []
     },
