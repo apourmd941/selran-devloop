@@ -56,10 +56,11 @@ class LoopConfig:
     max_iterations: int = 10
     # COST is the meaningful cap (checked between turns). A single audit or fix
     # turn on a real repo runs ~$3-8, so set this knowing a full audit+fix+re-audit
-    # cycle is ~$15-25. The token cap is a high secondary safety only — cache-read
-    # tokens inflate the raw count (one audit turn was 8M tokens but $5.81), so a
-    # low token cap trips spuriously.
-    max_cost_usd: float = 15.0
+    # cycle is ~$15-25; the default leaves headroom for a multi-iteration run. The
+    # token cap is a high secondary safety only — cache-read tokens inflate the raw
+    # count (one audit turn was 8M tokens but $5.81), so a low token cap trips
+    # spuriously.
+    max_cost_usd: float = 50.0
     max_tokens: int = 30_000_000
     max_wall_clock_minutes: int = 120
     stuck_no_progress_iters: int = 2          # stop if open count doesn't drop for N iters
