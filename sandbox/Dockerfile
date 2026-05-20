@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         dbus gnome-keyring libsecret-1-0 \
         libdbus-1-dev \
         nodejs npm \
+        python3 python3-pip \
     && rm -rf /var/lib/apt/lists/*
 # NOTE: libdbus-1-dev is REQUIRED — selran-crypto's Linux keychain backend
 # (keyring 3.x + sync-secret-service) pulls in libdbus-sys, whose build script
@@ -54,6 +55,12 @@ RUN npm install -g playwright@latest \
 # Copied to the location Claude Code reads at runtime so the loop driver can
 # load cartographer / pre-commit-verification / app-audit / audit-fix.
 COPY skills/ /root/.claude/skills/
+
+# ---- the loop driver (Phase 3) -------------------------------------------
+# The Agent SDK bundles the Claude Code CLI, so no separate Claude Code install.
+# A live run additionally needs ANTHROPIC_API_KEY passed into the container.
+COPY driver/ /opt/devloop/driver/
+RUN pip3 install --break-system-packages --no-cache-dir -r /opt/devloop/driver/requirements.txt
 
 # ---- workspace ------------------------------------------------------------
 # The driver mounts/clones the target repo's branch here at runtime.

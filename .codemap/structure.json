@@ -1,15 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T20:20:02Z",
+  "generated_at": "2026-05-20T20:26:12Z",
   "root": "/path/to/selran-devloop",
   "languages_detected": [
     "bash",
     "markdown",
     "python",
     "rust",
+    "text",
     "typescript"
   ],
-  "files_count": 35,
+  "files_count": 38,
   "directories": [],
   "files": {
     "README.md": {
@@ -63,9 +64,9 @@
     "driver/README.md": {
       "kind": "documentation",
       "language": "markdown",
-      "loc": 13,
-      "size_bytes": 595,
-      "purpose": "driver/ \u2014 Phase 3",
+      "loc": 48,
+      "size_bytes": 2095,
+      "purpose": "driver/ \u2014 Phase 3 (built; orchestration verified, live run pending)",
       "tags": [
         "documentation",
         "informational"
@@ -74,7 +75,29 @@
       "entry_point": false,
       "test_file": false,
       "doc_class": "informational",
-      "section_count": 0
+      "section_count": 3
+    },
+    "driver/devloop.py": {
+      "kind": "source",
+      "language": "python",
+      "loc": 369,
+      "size_bytes": 14722,
+      "purpose": "!/usr/bin/env python3",
+      "tags": [],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
+    },
+    "driver/requirements.txt": {
+      "kind": "other",
+      "language": "text",
+      "loc": 6,
+      "size_bytes": 240,
+      "purpose": "",
+      "tags": [],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
     },
     "sandbox/PHASE1-FINDINGS.md": {
       "kind": "documentation",
@@ -107,6 +130,22 @@
       "test_file": false,
       "doc_class": "informational",
       "section_count": 6
+    },
+    "sandbox/PHASE3-FINDINGS.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 78,
+      "size_bytes": 3839,
+      "purpose": "Phase 3 \u2014 Findings (Agent SDK loop driver)",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 5
     },
     "sandbox/README.md": {
       "kind": "documentation",

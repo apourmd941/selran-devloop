@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T20:20:03Z",
+  "generated_at": "2026-05-20T20:26:13Z",
   "summary": {
     "duplicate_basenames": 2,
     "suspicious_names": 0,
     "backup_directories": 0,
-    "orphan_files": 5,
+    "orphan_files": 6,
     "near_duplicates": 0,
     "stale_build_output": 0,
     "canonical_designations": 0
@@ -39,6 +39,13 @@
   "suspicious_names": [],
   "backup_directories": [],
   "orphan_files": [
+    {
+      "path": "driver/devloop.py",
+      "severity": "low",
+      "concern": "Source file has no `imported_by` entries; may be unreachable.",
+      "is_entry_point": false,
+      "suggested_action": "Check whether this file is dynamically loaded."
+    },
     {
       "path": "skills/cartographer/references/_build.py",
       "severity": "low",
