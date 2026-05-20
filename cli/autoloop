@@ -2,21 +2,26 @@
 # autoloop — Selran DevLoop run wrapper + PR gate (Phase 4).
 #
 # `autoloop run <repo>` does the whole end-to-end flow:
-#   1. preflight (git repo, remote, gh auth, container runtime)
+#   1. preflight (git repo, remote, gh auth, API key / runtime)
 #   2. cut an isolated worktree branch off the base branch
-#   3. run the loop on that branch:
-#        - live: in the sandbox container (Postgres + secret-service + the driver),
-#          which runs cartographer → app-audit → audit-fix and commits each fix
-#        - --dry-run: run the driver with --dry-run on the worktree (no container,
-#          no API spend, no commits)
-#   4. push the branch to origin
+#   3. run the loop on that branch — three modes:
+#        --dry-run : driver stub on the worktree (no API spend, no commits) — for
+#                    verifying the plumbing.
+#        --host    : LIVE loop on this machine. Claude Code runs as you (non-root),
+#                    the git worktree works natively. Less isolated, but it WORKS
+#                    today. Recommended live mode.
+#        (default) : LIVE loop in the sandbox container. EXPERIMENTAL — Claude Code
+#                    refuses to run as root with skip-permissions, and a bind-mounted
+#                    git worktree's linkage breaks in the container. Needs a non-root
+#                    container user + git-linkage rework before it works. Use --host.
+#   4. push the branch to origin (only if commits were produced)
 #   5. open a PR with a run report (stop reason, findings delta, commits, budget)
 #
 # The PR is the review gate: you review the diff + report and merge. autoloop
 # never pushes to or merges the base branch.
 #
 # Usage:
-#   autoloop run <repo> [--base <branch>] [--scope <text>] [--dry-run]
+#   autoloop run <repo> [--base <branch>] [--host] [--dry-run]
 #   autoloop --help
 
 set -uo pipefail
@@ -36,17 +41,18 @@ usage() {
 
 # --------------------------------------------------------------------------- #
 run() {
-  local repo="" base="" scope="" dry=0
+  local repo="" base="" scope="" dry=0 host=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --dry-run) dry=1; shift ;;
+      --host) host=1; shift ;;
       --base) base="$2"; shift 2 ;;
       --scope) scope="$2"; shift 2 ;;
       -*) die "unknown flag: $1" ;;
       *) repo="$1"; shift ;;
     esac
   done
-  [[ -n "$repo" ]] || die "usage: autoloop run <repo> [--base B] [--scope S] [--dry-run]"
+  [[ -n "$repo" ]] || die "usage: autoloop run <repo> [--base B] [--host] [--dry-run]"
   repo="$(cd "$repo" 2>/dev/null && pwd)" || die "repo not found"
   git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || die "not a git repo: $repo"
 
@@ -56,26 +62,38 @@ run() {
   [[ -z "$base" ]] && base="$(git -C "$repo" rev-parse --abbrev-ref HEAD)"
   command -v gh >/dev/null 2>&1 || { [[ $dry -eq 1 ]] && note "gh not found (ok for --dry-run)" || die "gh CLI required to open the PR"; }
   if [[ $dry -eq 0 ]]; then
-    command -v docker >/dev/null 2>&1 || die "container runtime required for a live run"
     [[ -n "${ANTHROPIC_API_KEY:-}" ]] || die "ANTHROPIC_API_KEY must be set for a live run (the driver authenticates Claude Code through it)"
+    if [[ $host -eq 1 ]]; then
+      command -v python3 >/dev/null 2>&1 || die "python3 required for --host mode"
+      python3 -c "import claude_agent_sdk" 2>/dev/null \
+        || die "--host mode needs the Agent SDK on this machine: pip install claude-agent-sdk"
+    else
+      command -v docker >/dev/null 2>&1 \
+        || die "container runtime required for a sandboxed live run (or use --host to run on this machine)"
+    fi
   fi
 
   local ts branch wt
   ts="$(date +%Y%m%d-%H%M%S)"
   branch="claude/autoloop-$ts"
   wt="$(mktemp -d)/wt"
-  note "repo=$repo base=$base branch=$branch dry_run=$dry"
+  note "repo=$repo base=$base branch=$branch dry_run=$dry host=$host"
 
   # ---- cut an isolated worktree branch ------------------------------------
   git -C "$repo" worktree add -q -b "$branch" "$wt" "$base" \
     || die "failed to create worktree branch from $base"
-  # carry a per-repo config if present
-  [[ -n "$scope" && -f "$wt/.devloop/autoloop.toml" ]] || true
 
   local rc=0
   if [[ $dry -eq 1 ]]; then
     note "dry-run: running the driver against the worktree (no container, no API)"
-    python3 "$DRIVER" --repo "$wt" --dry-run ${scope:+} || rc=$?
+    python3 "$DRIVER" --repo "$wt" --dry-run || rc=$?
+  elif [[ $host -eq 1 ]]; then
+    # Host mode: run the live loop directly on the worktree. Claude Code runs as
+    # the current (non-root) user — satisfying its root guard — and the git
+    # worktree works natively. Less isolated than the container; fine for your
+    # own machine + repo, on a throwaway branch + PR.
+    note "host mode: running the LIVE loop on the worktree (Claude Code runs as you, not root)"
+    python3 "$DRIVER" --repo "$wt" --config "$wt/.devloop/autoloop.toml" || rc=$?
   else
     run_live_loop "$wt" || rc=$?
   fi
