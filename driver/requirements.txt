@@ -1,0 +1,5 @@
+# Selran DevLoop driver dependencies.
+# The Agent SDK bundles the Claude Code CLI; no separate Claude Code install needed.
+claude-agent-sdk>=0.1.0
+anyio>=4.0.0
+# tomllib is stdlib on Python 3.11+; the driver degrades gracefully without it.
