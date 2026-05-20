@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T20:29:34Z",
+  "generated_at": "2026-05-20T20:32:51Z",
   "graph": {
     "README.md": {
       "imports_from": [],
@@ -35,6 +35,10 @@
       "imported_by": []
     },
     "sandbox/PHASE3-FINDINGS.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "sandbox/PHASE4-FINDINGS.md": {
       "imports_from": [],
       "imported_by": []
     },
