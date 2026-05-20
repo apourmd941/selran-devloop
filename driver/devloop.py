@@ -150,26 +150,38 @@ async def run_agent_turn(prompt: str, cfg: LoopConfig, max_turns: int) -> TurnRe
     # messages arrive, so a long turn shows what Claude is doing instead of going
     # dark. Set DEVLOOP_QUIET=1 to suppress.
     stream = os.environ.get("DEVLOOP_QUIET") != "1"
-    async for message in query(prompt=prompt, options=options):
-        if isinstance(message, AssistantMessage):
-            for block in message.content:
-                if isinstance(block, TextBlock):
-                    text_parts.append(block.text)
-                    if stream:
-                        line = block.text.strip().splitlines()[0] if block.text.strip() else ""
-                        if line:
-                            print(f"     » {line[:140]}", flush=True)
-                elif isinstance(block, ToolUseBlock) and stream:
-                    print(f"     · {block.name}: {_summarize_tool(block.name, block.input)}",
-                          flush=True)
-        elif isinstance(message, ResultMessage):
-            result.usage = message.usage
-            result.cost_usd = message.total_cost_usd
-            result.num_turns = message.num_turns
-            result.is_error = message.is_error
-            if message.result:
-                text_parts.append(message.result)
+    err = None
+    try:
+        async for message in query(prompt=prompt, options=options):
+            if isinstance(message, AssistantMessage):
+                for block in message.content:
+                    if isinstance(block, TextBlock):
+                        text_parts.append(block.text)
+                        if stream:
+                            line = block.text.strip().splitlines()[0] if block.text.strip() else ""
+                            if line:
+                                print(f"     » {line[:140]}", flush=True)
+                    elif isinstance(block, ToolUseBlock) and stream:
+                        print(f"     · {block.name}: {_summarize_tool(block.name, block.input)}",
+                              flush=True)
+            elif isinstance(message, ResultMessage):
+                result.usage = message.usage
+                result.cost_usd = message.total_cost_usd
+                result.num_turns = message.num_turns
+                result.is_error = message.is_error
+                if message.result:
+                    text_parts.append(message.result)
+    except Exception as e:  # noqa: BLE001
+        # The SDK raises on e.g. "Reached maximum number of turns". Treat any
+        # turn-level failure as a clean error result, not a crash, so the loop
+        # stops with a readable stop_reason + report instead of a traceback.
+        err = str(e)
+        result.is_error = True
+        if stream:
+            print(f"     ✗ agent error: {err}", flush=True)
     result.text = "\n".join(text_parts)
+    if err:
+        result.text = (result.text + f"\nAGENT_ERROR: {err}").strip()
     return result
 
 
@@ -283,11 +295,12 @@ async def run_loop(cfg: LoopConfig, dry_run: bool) -> dict:
             print("[devloop] audit turn — cartographer refresh + app-audit "
                   "(live activity below; can take several minutes)…", flush=True)
         a = (stub_agent_turn(audit_prompt(cfg), stub_state) if dry_run
-             else await run_agent_turn(audit_prompt(cfg), cfg, max_turns=40))
+             else await run_agent_turn(audit_prompt(cfg), cfg, max_turns=250))
         budget.record(a.usage, a.cost_usd)
         if a.is_error:
-            stop_reason = "agent error during audit turn"
-            history.append({"iter": it, "phase": "audit", "error": True})
+            detail = a.text.split("AGENT_ERROR:", 1)[-1].strip() if "AGENT_ERROR:" in a.text else ""
+            stop_reason = f"agent error during audit turn{(' — ' + detail) if detail else ''}"
+            history.append({"iter": it, "phase": "audit", "error": detail or True})
             break
         m = RE_FINDINGS.search(a.text)
         open_n = int(m.group(1)) if m else None
@@ -319,8 +332,13 @@ async def run_loop(cfg: LoopConfig, dry_run: bool) -> dict:
             print(f"[devloop] fix turn — audit-fix on {open_n} finding(s) "
                   "(live activity below)…", flush=True)
         f = (stub_agent_turn(fix_prompt(cfg), stub_state) if dry_run
-             else await run_agent_turn(fix_prompt(cfg), cfg, max_turns=120))
+             else await run_agent_turn(fix_prompt(cfg), cfg, max_turns=400))
         budget.record(f.usage, f.cost_usd)
+        if f.is_error:
+            detail = f.text.split("AGENT_ERROR:", 1)[-1].strip() if "AGENT_ERROR:" in f.text else ""
+            stop_reason = f"agent error during fix turn{(' — ' + detail) if detail else ''}"
+            history.append({"iter": it, "phase": "fix", "error": detail or True})
+            break
         fixed = int(RE_FIXED.search(f.text).group(1)) if RE_FIXED.search(f.text) else 0
         deferred = int(RE_DEFERRED.search(f.text).group(1)) if RE_DEFERRED.search(f.text) else 0
         remaining = int(RE_OPEN.search(f.text).group(1)) if RE_OPEN.search(f.text) else open_n
