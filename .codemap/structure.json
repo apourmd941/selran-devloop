@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T21:17:40Z",
+  "generated_at": "2026-05-20T21:19:57Z",
   "root": "/path/to/selran-devloop",
   "languages_detected": [
     "bash",
@@ -96,8 +96,8 @@
     "driver/devloop.py": {
       "kind": "source",
       "language": "python",
-      "loc": 405,
-      "size_bytes": 16502,
+      "loc": 423,
+      "size_bytes": 17564,
       "purpose": "!/usr/bin/env python3",
       "tags": [],
       "spec_refs": [],
