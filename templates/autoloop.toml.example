@@ -37,8 +37,9 @@ keystore_path = "/tmp/devloop-keys"
 max_iterations         = 10
 # COST is the real cap — checked between turns. A full audit+fix+re-audit cycle on
 # a real repo is ~$15-25, and a single turn can overshoot by its own cost (~$3-8),
-# so the effective stop is this cap plus up to one turn.
-max_cost_usd           = 15
+# so the effective stop is this cap plus up to one turn. Default leaves headroom
+# for a multi-iteration run; lower it for a cheaper first test.
+max_cost_usd           = 50
 # Secondary safety only. Cache-read tokens inflate the raw count (one real audit
 # turn was ~8M tokens but only $5.81), so keep this high or it trips spuriously.
 max_tokens             = 30000000
