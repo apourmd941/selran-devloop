@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T19:35:50Z",
+  "generated_at": "2026-05-20T20:06:07Z",
   "graph": {
     "README.md": {
       "imports_from": [],
@@ -18,7 +18,15 @@
       "imports_from": [],
       "imported_by": []
     },
+    "sandbox/PHASE1-FINDINGS.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
     "sandbox/README.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "sandbox/validate-linux.sh": {
       "imports_from": [],
       "imported_by": []
     },

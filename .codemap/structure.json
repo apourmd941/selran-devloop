@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T19:35:50Z",
+  "generated_at": "2026-05-20T20:06:07Z",
   "root": "/path/to/selran-devloop",
   "languages_detected": [
     "bash",
@@ -9,7 +9,7 @@
     "rust",
     "typescript"
   ],
-  "files_count": 31,
+  "files_count": 33,
   "directories": [],
   "files": {
     "README.md": {
@@ -76,12 +76,12 @@
       "doc_class": "informational",
       "section_count": 0
     },
-    "sandbox/README.md": {
+    "sandbox/PHASE1-FINDINGS.md": {
       "kind": "documentation",
       "language": "markdown",
-      "loc": 12,
-      "size_bytes": 483,
-      "purpose": "sandbox/ \u2014 Phase 1",
+      "loc": 83,
+      "size_bytes": 3432,
+      "purpose": "Phase 1 \u2014 Findings",
       "tags": [
         "documentation",
         "informational"
@@ -90,7 +90,34 @@
       "entry_point": false,
       "test_file": false,
       "doc_class": "informational",
-      "section_count": 0
+      "section_count": 6
+    },
+    "sandbox/README.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 34,
+      "size_bytes": 1113,
+      "purpose": "sandbox/ \u2014 Phase 1 (in progress)",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 2
+    },
+    "sandbox/validate-linux.sh": {
+      "kind": "other",
+      "language": "bash",
+      "loc": 116,
+      "size_bytes": 5218,
+      "purpose": "",
+      "tags": [],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
     },
     "scripts/install-skills.sh": {
       "kind": "other",
