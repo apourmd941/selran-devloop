@@ -132,6 +132,7 @@ async def run_agent_turn(prompt: str, cfg: LoopConfig, max_turns: int) -> TurnRe
         ClaudeAgentOptions,
         AssistantMessage,
         TextBlock,
+        ToolUseBlock,
         ResultMessage,
     )
 
@@ -145,11 +146,22 @@ async def run_agent_turn(prompt: str, cfg: LoopConfig, max_turns: int) -> TurnRe
 
     text_parts: list[str] = []
     result = TurnResult(text="", usage=None, cost_usd=None, num_turns=0, is_error=False)
+    # Live activity stream: print each tool call + a one-line narration as the
+    # messages arrive, so a long turn shows what Claude is doing instead of going
+    # dark. Set DEVLOOP_QUIET=1 to suppress.
+    stream = os.environ.get("DEVLOOP_QUIET") != "1"
     async for message in query(prompt=prompt, options=options):
         if isinstance(message, AssistantMessage):
             for block in message.content:
                 if isinstance(block, TextBlock):
                     text_parts.append(block.text)
+                    if stream:
+                        line = block.text.strip().splitlines()[0] if block.text.strip() else ""
+                        if line:
+                            print(f"     » {line[:140]}", flush=True)
+                elif isinstance(block, ToolUseBlock) and stream:
+                    print(f"     · {block.name}: {_summarize_tool(block.name, block.input)}",
+                          flush=True)
         elif isinstance(message, ResultMessage):
             result.usage = message.usage
             result.cost_usd = message.total_cost_usd
@@ -159,6 +171,24 @@ async def run_agent_turn(prompt: str, cfg: LoopConfig, max_turns: int) -> TurnRe
                 text_parts.append(message.result)
     result.text = "\n".join(text_parts)
     return result
+
+
+def _summarize_tool(name: str, inp: dict | None) -> str:
+    """One-line summary of a tool call for the live stream."""
+    inp = inp or {}
+    if name == "Bash":
+        return str(inp.get("command", ""))[:90]
+    if name in ("Read", "Edit", "Write", "NotebookEdit"):
+        return str(inp.get("file_path", ""))
+    if name == "Grep":
+        return f"/{inp.get('pattern', '')}/ {inp.get('path', '') or ''}".strip()
+    if name == "Glob":
+        return str(inp.get("pattern", ""))
+    if name == "Skill":
+        return str(inp.get("name") or inp.get("command", ""))
+    if name == "Task":
+        return str(inp.get("description", ""))[:80]
+    return ", ".join(f"{k}={str(v)[:40]}" for k, v in list(inp.items())[:2])
 
 
 def stub_agent_turn(prompt: str, state: dict) -> TurnResult:
@@ -249,6 +279,9 @@ async def run_loop(cfg: LoopConfig, dry_run: bool) -> dict:
         print(f"\n[devloop] === iteration {it} ===")
 
         # 1) map + audit
+        if not dry_run:
+            print("[devloop] audit turn — cartographer refresh + app-audit "
+                  "(live activity below; can take several minutes)…", flush=True)
         a = (stub_agent_turn(audit_prompt(cfg), stub_state) if dry_run
              else await run_agent_turn(audit_prompt(cfg), cfg, max_turns=40))
         budget.record(a.usage, a.cost_usd)
@@ -282,6 +315,9 @@ async def run_loop(cfg: LoopConfig, dry_run: bool) -> dict:
             break
 
         # 2) fix
+        if not dry_run:
+            print(f"[devloop] fix turn — audit-fix on {open_n} finding(s) "
+                  "(live activity below)…", flush=True)
         f = (stub_agent_turn(fix_prompt(cfg), stub_state) if dry_run
              else await run_agent_turn(fix_prompt(cfg), cfg, max_turns=120))
         budget.record(f.usage, f.cost_usd)

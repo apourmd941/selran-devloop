@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T21:07:40Z",
+  "generated_at": "2026-05-20T21:17:40Z",
   "root": "/Users/aidin/NeutronDev/selran-devloop",
   "languages_detected": [
     "bash",
@@ -96,8 +96,8 @@
     "driver/devloop.py": {
       "kind": "source",
       "language": "python",
-      "loc": 369,
-      "size_bytes": 14722,
+      "loc": 405,
+      "size_bytes": 16502,
       "purpose": "!/usr/bin/env python3",
       "tags": [],
       "spec_refs": [],
