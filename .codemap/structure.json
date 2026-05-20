@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T20:06:07Z",
+  "generated_at": "2026-05-20T20:20:02Z",
   "root": "/Users/aidin/NeutronDev/selran-devloop",
   "languages_detected": [
     "bash",
@@ -9,7 +9,7 @@
     "rust",
     "typescript"
   ],
-  "files_count": 33,
+  "files_count": 35,
   "directories": [],
   "files": {
     "README.md": {
@@ -92,6 +92,22 @@
       "doc_class": "informational",
       "section_count": 6
     },
+    "sandbox/PHASE2-FINDINGS.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 81,
+      "size_bytes": 3674,
+      "purpose": "Phase 2 \u2014 Findings (oracle layer)",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 6
+    },
     "sandbox/README.md": {
       "kind": "documentation",
       "language": "markdown",
@@ -107,6 +123,17 @@
       "test_file": false,
       "doc_class": "informational",
       "section_count": 2
+    },
+    "sandbox/run-smoke.sh": {
+      "kind": "other",
+      "language": "bash",
+      "loc": 65,
+      "size_bytes": 3095,
+      "purpose": "",
+      "tags": [],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false
     },
     "sandbox/validate-linux.sh": {
       "kind": "other",
