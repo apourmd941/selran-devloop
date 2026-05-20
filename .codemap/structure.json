@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T20:29:34Z",
+  "generated_at": "2026-05-20T20:32:51Z",
   "root": "/Users/aidin/NeutronDev/selran-devloop",
   "languages_detected": [
     "bash",
@@ -10,7 +10,7 @@
     "text",
     "typescript"
   ],
-  "files_count": 38,
+  "files_count": 39,
   "directories": [],
   "files": {
     "README.md": {
@@ -32,9 +32,9 @@
     "cli/README.md": {
       "kind": "documentation",
       "language": "markdown",
-      "loc": 14,
-      "size_bytes": 421,
-      "purpose": "cli/ \u2014 Phase 4",
+      "loc": 34,
+      "size_bytes": 1662,
+      "purpose": "cli/ \u2014 Phase 4 (built; orchestration verified, live run gated)",
       "tags": [
         "documentation",
         "informational"
@@ -43,7 +43,7 @@
       "entry_point": false,
       "test_file": false,
       "doc_class": "informational",
-      "section_count": 0
+      "section_count": 2
     },
     "docs/DESIGN.md": {
       "kind": "documentation",
@@ -137,6 +137,22 @@
       "loc": 78,
       "size_bytes": 3839,
       "purpose": "Phase 3 \u2014 Findings (Agent SDK loop driver)",
+      "tags": [
+        "documentation",
+        "informational"
+      ],
+      "spec_refs": [],
+      "entry_point": false,
+      "test_file": false,
+      "doc_class": "informational",
+      "section_count": 5
+    },
+    "sandbox/PHASE4-FINDINGS.md": {
+      "kind": "documentation",
+      "language": "markdown",
+      "loc": 66,
+      "size_bytes": 3376,
+      "purpose": "Phase 4 \u2014 Findings (run wrapper + PR gate)",
       "tags": [
         "documentation",
         "informational"
