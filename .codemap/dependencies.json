@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T20:36:02Z",
+  "generated_at": "2026-05-20T20:39:14Z",
   "graph": {
     "README.md": {
       "imports_from": [],
@@ -11,6 +11,10 @@
       "imported_by": []
     },
     "docs/DESIGN.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "docs/ONBOARDING.md": {
       "imports_from": [],
       "imported_by": []
     },
@@ -39,6 +43,10 @@
       "imported_by": []
     },
     "sandbox/PHASE4-FINDINGS.md": {
+      "imports_from": [],
+      "imported_by": []
+    },
+    "sandbox/PHASE5-FINDINGS.md": {
       "imports_from": [],
       "imported_by": []
     },
