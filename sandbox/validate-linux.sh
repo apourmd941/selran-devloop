@@ -7,7 +7,10 @@
 #   1. cargo check  -p selran-crypto   (the macOS/Linux keychain split — main risk)
 #   2. cargo check  -p backend-rs      (the rest of the backend)
 #   3. cargo build  -p backend-rs      (real compile + link on Linux)
-#   4. boot + health  (start Postgres + a headless secret-service, launch, curl /api/health)
+#   4. boot + health  (Postgres + headless secret-service, launch, curl /api/health)
+#
+# Build cache (cargo registry + target) persists in named volumes, so re-runs
+# after the first are incremental and fast.
 #
 # Usage:  ./sandbox/validate-linux.sh /path/to/target-repo
 #
@@ -33,16 +36,26 @@ fi
 
 echo "[validate] runtime: $RUNTIME"
 echo "[validate] building sandbox image..."
-"$RUNTIME" build -t "$IMAGE" "$(dirname "$0")" || { echo "FAIL: image build" >&2; exit 1; }
+# Build context must be the repo ROOT (the Dockerfile does `COPY skills/`, and
+# skills/ lives at the repo root, not in sandbox/). Point -f at the Dockerfile.
+SANDBOX_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SANDBOX_DIR/.." && pwd)"
+"$RUNTIME" build -t "$IMAGE" -f "$SANDBOX_DIR/Dockerfile" "$REPO_ROOT" || { echo "FAIL: image build" >&2; exit 1; }
 
-# Run the gate inside the container with the target repo mounted read-only and a
-# fresh target/ dir so we never pollute the host build.
+# Run the gate. Source mounted read-only; build cache in named volumes so retries
+# are incremental; CARGO_TARGET_DIR points at a volume (not the copied tree).
 "$RUNTIME" run --rm \
   -v "$TARGET_REPO":/src:ro \
-  -e CARGO_TARGET_DIR=/work/target \
+  -v devloop-cargo-registry:/root/.cargo/registry \
+  -v devloop-cargo-target:/cargo-target \
+  -e CARGO_TARGET_DIR=/cargo-target \
   "$IMAGE" bash -euo pipefail -c '
-    echo "=== copy source (keep host target/ clean) ==="
-    cp -a /src/. /work/ 2>/dev/null || true
+    echo "=== copy source (excluding target/.git/.claude/node_modules) ==="
+    mkdir -p /work
+    ( cd /src && tar -cf - \
+        --exclude="./target" --exclude="./.git" --exclude="./.claude" \
+        --exclude="./node_modules" --exclude="*/node_modules" . ) \
+      | ( cd /work && tar -xf - )
     cd /work
 
     echo "=== [1/4] cargo check -p selran-crypto (keychain split) ==="
@@ -55,20 +68,41 @@ echo "[validate] building sandbox image..."
     cargo build -p backend-rs
 
     echo "=== [4/4] boot + health ==="
-    # Postgres
+    # Postgres up. Add trust auth for loopback TCP so we connect without a
+    # password (no embedded secret), then create the DB. v4 auto-migrates from
+    # backend-rs/migrations/ at first boot, so no separate migrate step.
     service postgresql start || pg_ctlcluster "$(ls /etc/postgresql)" main start || true
-    # Headless secret-service so selran-crypto1s Linux keychain path has a daemon.
-    # Throwaway, empty password — NEVER a real secret.
+    for n in $(seq 1 20); do pg_isready -h 127.0.0.1 -p 5432 && break; sleep 0.5; done
+    PGHBA="$(ls /etc/postgresql/*/main/pg_hba.conf | head -1)"
+    # pg_hba is FIRST-MATCH-WINS; Debian default scram line for 127.0.0.1 comes
+    # before any appended line, so appending trust never takes effect. Rewrite
+    # every auth method to trust (throwaway sandbox — no real data, no secrets).
+    sed -i "s/scram-sha-256/trust/g; s/md5/trust/g; s/peer/trust/g" "$PGHBA"
+    service postgresql restart || pg_ctlcluster "$(ls /etc/postgresql)" main restart || true
+    for n in $(seq 1 20); do pg_isready -h 127.0.0.1 -p 5432 && break; sleep 0.5; done
+    su postgres -c "createdb your_app" 2>/dev/null || true
+
+    # Env v4 needs to boot (from .env.example). Pin the bind port — v4 defaults
+    # BACKEND_RS_BIND to 127.0.0.1:0 (a RANDOM port) that no fixed health check
+    # could hit. SELRAN_ALLOW_REMOTE_AI=0 keeps it local-only.
+    export DATABASE_URL="postgres://postgres@127.0.0.1:5432/your_app"
+    export BACKEND_RS_BIND="127.0.0.1:8765"
+    export SELRAN_ALLOW_REMOTE_AI=0
+    export RUST_LOG="info,backend_rs=debug"
+
+    # Headless secret-service so selran-cryptos Linux keychain path has a daemon.
+    # Throwaway, empty password — NEVER a real secret. Backend output goes to a
+    # log so a boot failure shows WHY (not just curl connection-refused spam).
     dbus-run-session -- bash -euo pipefail -c "
-      echo \"\" | gnome-keyring-daemon --unlock --components=secrets &
+      echo | gnome-keyring-daemon --unlock --components=secrets >/dev/null 2>&1 &
       sleep 1
-      # CUSTOMIZE: launch command + health URL come from the repo1s autoloop.toml
-      (cargo run -p backend-rs &)
-      for i in \$(seq 1 30); do
-        curl -fsS http://127.0.0.1:8765/api/health && { echo; echo PASS; exit 0; }
+      ( cargo run -p backend-rs > /tmp/backend.log 2>&1 & )
+      for n in \$(seq 1 60); do
+        if curl -fsS http://127.0.0.1:8765/api/health; then echo; echo PASS; exit 0; fi
         sleep 1
       done
-      echo \"FAIL: health did not respond within 30s\" >&2
+      echo \"FAIL: health did not respond within 60s — backend log tail:\" >&2
+      tail -40 /tmp/backend.log >&2
       exit 1
     "
   '

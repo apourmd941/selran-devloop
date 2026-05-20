@@ -30,6 +30,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # the Rust compiles fine; only libdbus-sys needs these dev headers. See
 # sandbox/PHASE1-FINDINGS.md.
 
+# ---- pgvector -------------------------------------------------------------
+# your-rust-app's migration 1 uses the `vector` type, so the extension must be
+# present or the backend fails at first-boot migration. (v4 logs "vector
+# features will be runtime-disabled" when pgvector is absent, but the migration
+# still hard-requires the type — a v4 inconsistency flagged for a later audit;
+# the sandbox just provides the extension.) Built from source against PG15.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential postgresql-server-dev-15 \
+    && git clone --depth 1 --branch v0.8.0 https://github.com/pgvector/pgvector.git /tmp/pgvector \
+    && make -C /tmp/pgvector OPTFLAGS="" && make -C /tmp/pgvector install \
+    && rm -rf /tmp/pgvector \
+    && apt-get purge -y build-essential postgresql-server-dev-15 \
+    && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
 # ---- node toolchain (frontend build + Playwright-WebKit) ------------------
 # Playwright's WebKit engine runs headless on Linux — this is how the
 # web-layer frontend smoke/e2e (harness categories 5 + 9) run without a Mac.
