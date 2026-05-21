@@ -1,6 +1,6 @@
 ---
 name: pre-commit-verification
-version: 0.5.0
+version: 0.5.1
 description: Use this skill whenever the user asks to verify, test, check, validate, or confirm their repo before committing or pushing — including requests like "do a pre commit verification", "run local tests before push", "deep local verification", "fix everything and test it", "make sure this is ready", or "run the full verification pass". Covers stack-aware test discovery, unit/integration/e2e tests, smoke tests, lint checks, type checks, builds, and a runtime smoke/integration harness (binary-launch, migration idempotency, provider mocks, headless webview, env probe) for desktop apps. Do NOT use for a single narrow test unless explicitly requested.
 ---
 
