@@ -22,7 +22,7 @@ four, which is what kills the version drift we used to hit.
 | Skill | Version | Role |
 |---|---|---|
 | cartographer | 0.4.1 | Maps the codebase (`.codemap/*.json`) |
-| pre-commit-verification | 0.5.0 | Runs tests + the smoke/integration harness |
+| pre-commit-verification | 0.5.1 | Runs tests + the smoke/integration harness |
 | app-audit | 0.5.0 | Convergent audit; folds pre-commit + harness results into AUDIT_LOG |
 | audit-fix | 0.5.0 | Fixes findings safely (per-fix verify, revert-on-fail) |
 
