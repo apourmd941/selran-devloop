@@ -44,5 +44,10 @@ max_cost_usd           = 50
 # turn was ~8M tokens but only $5.81), so keep this high or it trips spuriously.
 max_tokens             = 30000000
 max_wall_clock_minutes = 120
+# Per-TURN cap. The overall caps above are only checked between turns, so they
+# can't stop a single frozen turn. A working audit/fix turn is ~10-20 min; a turn
+# past this is almost always a hung shell command, so it's aborted (loop stops +
+# preserves work instead of freezing).
+max_turn_minutes       = 30
 stuck_fix_alternatives = 2                 # try N alternative fixes, then defer
 never_touch_branches   = ["main", "master"]

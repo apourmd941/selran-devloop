@@ -132,6 +132,39 @@ Do not re-scaffold if the harness already exists. Treat the project's copies as 
 - Each category runs independently and reports its own pass/fail. A failure in one category does not skip the others — run them all, report all.
 - Harness tests are heavier than unit tests (they launch processes, spin up DBs, drive webviews). Keep them focused; don't expand into long manual QA.
 
+### Launching a server safely (CRITICAL — avoid the background-process deadlock)
+
+When you launch a server in the background to probe it (HTTP health, webview, etc.),
+**never** end with bare `wait` and **never** rely on `%`-job control. A non-interactive
+shell has job control off, so `kill %1` silently does nothing, and `wait` then blocks
+**forever** on a server that never exits — freezing the whole verification (and, under
+the DevLoop driver, the entire loop). This is the single most common way a smoke check
+hangs. Always: capture the PID, bound the whole thing with `timeout`, and kill the PID
+explicitly (never `kill %1; wait`).
+
+Safe, stack-agnostic pattern:
+
+```bash
+# 1) launch, capture the real PID, redirect output to a file (not the tool's pipe)
+<server-launch-cmd> > /tmp/smoke.log 2>&1 &
+SRV=$!
+# 2) wait for readiness with a BOUNDED poll (never an unbounded wait)
+for i in $(seq 1 30); do
+  curl -fsS "$HEALTH_URL" >/dev/null 2>&1 && break
+  sleep 1
+done
+# 3) do the probe(s)
+curl -sS -i "$HEALTH_URL" | head -20
+# 4) ALWAYS tear down by PID, then reap only that PID (never bare `wait`)
+kill "$SRV" 2>/dev/null || true
+wait "$SRV" 2>/dev/null || true   # reaps ONLY $SRV — safe; bare `wait` is not
+```
+
+Belt-and-suspenders: wrap the launch in `timeout 60 bash -c '…'` so even a botched
+teardown self-terminates. If a server ignores SIGTERM, escalate (`kill -9 "$SRV"`).
+Prefer an in-process test client (e.g. FastAPI `TestClient`, axum test server) over a
+bound network server when you only need to hit a route — it can't leak a process at all.
+
 ## Structured result reporting
 
 Always report results in this structure, so app-audit can capture them into `AUDIT_LOG.md` and audit-fix can act on failures:

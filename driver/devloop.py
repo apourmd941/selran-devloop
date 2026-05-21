@@ -63,6 +63,12 @@ class LoopConfig:
     max_cost_usd: float = 50.0
     max_tokens: int = 30_000_000
     max_wall_clock_minutes: int = 120
+    # Per-TURN wall-clock cap (the overall cap is only checked between turns, so it
+    # can't rescue a single hung turn). A working audit/fix turn runs ~10-20 min; a
+    # turn that blows past this is almost always a hung shell command (e.g. a smoke
+    # server launched with `&` then `wait`, which never returns). Abort the turn so
+    # the loop stops + preserves work instead of freezing for hours.
+    max_turn_minutes: int = 30
     stuck_no_progress_iters: int = 2          # stop if open count doesn't drop for N iters
     never_touch_branches: tuple[str, ...] = ("main", "master")
 
@@ -79,6 +85,7 @@ class LoopConfig:
             cfg.max_wall_clock_minutes = int(
                 loop.get("max_wall_clock_minutes", cfg.max_wall_clock_minutes)
             )
+            cfg.max_turn_minutes = int(loop.get("max_turn_minutes", cfg.max_turn_minutes))
             cfg.stuck_no_progress_iters = int(
                 loop.get("stuck_fix_alternatives", cfg.stuck_no_progress_iters)
             )
@@ -140,6 +147,7 @@ class TurnResult:
 # --------------------------------------------------------------------------- #
 async def run_agent_turn(prompt: str, cfg: LoopConfig, max_turns: int) -> TurnResult:
     """Run one Claude Code turn via the Agent SDK, with our skills enabled."""
+    import anyio
     from claude_agent_sdk import (  # imported lazily so --dry-run needs no install
         query,
         ClaudeAgentOptions,
@@ -164,26 +172,42 @@ async def run_agent_turn(prompt: str, cfg: LoopConfig, max_turns: int) -> TurnRe
     # dark. Set DEVLOOP_QUIET=1 to suppress.
     stream = os.environ.get("DEVLOOP_QUIET") != "1"
     err = None
+    # Per-turn wall-clock guard: if the turn doesn't finish within max_turn_minutes
+    # the cancel scope fires, query()'s generator is cancelled (which tears down the
+    # underlying Claude Code subprocess), and we surface a clean error instead of
+    # hanging forever on a blocking command. anyio is the SDK's own async backend,
+    # so this cooperates with its subprocess teardown.
+    timeout_s = cfg.max_turn_minutes * 60
     try:
-        async for message in query(prompt=prompt, options=options):
-            if isinstance(message, AssistantMessage):
-                for block in message.content:
-                    if isinstance(block, TextBlock):
-                        text_parts.append(block.text)
-                        if stream:
-                            line = block.text.strip().splitlines()[0] if block.text.strip() else ""
-                            if line:
-                                print(f"     » {line[:140]}", flush=True)
-                    elif isinstance(block, ToolUseBlock) and stream:
-                        print(f"     · {block.name}: {_summarize_tool(block.name, block.input)}",
-                              flush=True)
-            elif isinstance(message, ResultMessage):
-                result.usage = message.usage
-                result.cost_usd = message.total_cost_usd
-                result.num_turns = message.num_turns
-                result.is_error = message.is_error
-                if message.result:
-                    text_parts.append(message.result)
+        with anyio.fail_after(timeout_s):
+            async for message in query(prompt=prompt, options=options):
+                if isinstance(message, AssistantMessage):
+                    for block in message.content:
+                        if isinstance(block, TextBlock):
+                            text_parts.append(block.text)
+                            if stream:
+                                line = block.text.strip().splitlines()[0] if block.text.strip() else ""
+                                if line:
+                                    print(f"     » {line[:140]}", flush=True)
+                        elif isinstance(block, ToolUseBlock) and stream:
+                            print(f"     · {block.name}: {_summarize_tool(block.name, block.input)}",
+                                  flush=True)
+                elif isinstance(message, ResultMessage):
+                    result.usage = message.usage
+                    result.cost_usd = message.total_cost_usd
+                    result.num_turns = message.num_turns
+                    result.is_error = message.is_error
+                    if message.result:
+                        text_parts.append(message.result)
+    except TimeoutError:
+        # fail_after raises TimeoutError on expiry. Almost always a hung shell
+        # command (background server + bare `wait`), not slow thinking.
+        err = (f"turn exceeded its {cfg.max_turn_minutes}m cap — almost always a "
+               "hung/blocking shell command (e.g. a background smoke server that "
+               "never exits); turn aborted so the loop can stop and preserve work")
+        result.is_error = True
+        if stream:
+            print(f"     ✗ turn timeout: {err}", flush=True)
     except Exception as e:  # noqa: BLE001
         # The SDK raises on e.g. "Reached maximum number of turns". Treat any
         # turn-level failure as a clean error result, not a crash, so the loop
