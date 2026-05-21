@@ -83,10 +83,22 @@ run() {
   git -C "$repo" worktree add -q -b "$branch" "$wt" "$base" \
     || die "failed to create worktree branch from $base"
 
+  # The worktree is the committed tip of $base, so an UNTRACKED .devloop/autoloop.toml
+  # in the source repo isn't present and the driver would silently fall back to its
+  # built-in defaults. If the branch doesn't already carry a config, copy the source
+  # repo's in so the per-repo settings actually apply. (Lives inside the worktree so
+  # both host mode and the bind-mounted container see it; it'll show up in the PR,
+  # which doubles as committing the onboarding file.)
+  if [[ ! -f "$wt/.devloop/autoloop.toml" && -f "$repo/.devloop/autoloop.toml" ]]; then
+    mkdir -p "$wt/.devloop"
+    cp "$repo/.devloop/autoloop.toml" "$wt/.devloop/autoloop.toml"
+    note "applied untracked per-repo config from $repo/.devloop/autoloop.toml"
+  fi
+
   local rc=0
   if [[ $dry -eq 1 ]]; then
     note "dry-run: running the driver against the worktree (no container, no API)"
-    python3 "$DRIVER" --repo "$wt" --dry-run || rc=$?
+    python3 "$DRIVER" --repo "$wt" --config "$wt/.devloop/autoloop.toml" --dry-run || rc=$?
   elif [[ $host -eq 1 ]]; then
     # Host mode: run the live loop directly on the worktree. Claude Code runs as
     # the current (non-root) user — satisfying its root guard — and the git
