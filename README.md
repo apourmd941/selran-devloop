@@ -26,21 +26,39 @@ four, which is what kills the version drift we used to hit.
 | app-audit | 0.5.0 | Convergent audit; folds pre-commit + harness results into AUDIT_LOG |
 | audit-fix | 0.5.0 | Fixes findings safely (per-fix verify, revert-on-fail) |
 
-Install them into Claude Code's skill directory:
+## Installing — pick what you want
+
+One interactive installer explains each option and copies what you pick to
+`~/.claude/skills/`:
 
 ```bash
-./scripts/install-skills.sh    # copies skills/ -> ~/.claude/skills/
+./install.sh
 ```
+
+It offers:
+
+- **One skill at a time** — cartographer, pre-commit-verification, app-audit, or
+  audit-fix (with their dependencies pulled in automatically).
+- **All four skills** (`./install.sh --all`) — the recommended methodology-only
+  setup. Use the skills directly from Claude Code without the autonomous loop.
+- **Full DevLoop engine** (`./install.sh --devloop`) — all four skills + the
+  `autoloop` runner that drives cartographer → app-audit → audit-fix to
+  convergence and opens a reviewable PR. Verifies Python / Agent SDK / `gh` /
+  API key as part of the install.
+
+`./install.sh --help` prints the same menu without installing anything, so a
+new user can read what each piece does before choosing.
 
 ## Layout
 
 ```
+install.sh               friendly installer (interactive picker)
 skills/                  the 4 methodology skills (source of truth)
 sandbox/                 the reproducible Linux container image (Phase 1)
 driver/                  the Agent SDK loop driver (Phase 3)
 cli/                     the `autoloop` CLI (Phase 4)
 templates/               per-repo config template (autoloop.toml.example)
-scripts/install-skills.sh   copy skills -> ~/.claude/skills
+scripts/install-skills.sh  legacy "install all 4 skills" non-interactive helper
 docs/DESIGN.md           the full build plan + architecture decisions
 ```
 

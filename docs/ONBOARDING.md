@@ -5,12 +5,18 @@ scaffold**, not code changes to DevLoop itself. Proven on Cortex (Python) after
 being built against selran-mail-v4 (Rust) — same engine, different stack, only a
 config file added.
 
-## 1. Install the skills (once per machine)
+## 1. Install (once per machine)
 
 ```bash
 git clone <selran-devloop>            # or pull latest
-cd selran-devloop && ./scripts/install-skills.sh   # copies skills/ → ~/.claude/skills
+cd selran-devloop && ./install.sh     # interactive picker — explains each option
 ```
+
+`./install.sh` lets you pick exactly what you want: a single skill (cartographer,
+pre-commit-verification, app-audit, audit-fix), all four together
+(`./install.sh --all`), or the full DevLoop engine including the autonomous
+runner (`./install.sh --devloop`). Pass `--help` to see the menu without
+installing. The skills land in `~/.claude/skills/` where Claude Code loads them.
 
 ## 2. Add a per-repo config (the only required file)
 
