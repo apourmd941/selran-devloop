@@ -49,11 +49,34 @@ It offers:
 `./install.sh --help` prints the same menu without installing anything, so a
 new user can read what each piece does before choosing.
 
+For Codex, install the same four skills into `~/.codex/skills/`:
+
+```bash
+scripts/install-codex-skills.sh
+```
+
+Restart Codex after installing so the skills appear in the automatic skill list.
+
+## Local progress UI
+
+A tiny local dashboard can launch `autoloop` and show the workflow as:
+`cartographer` stages 1-4, `pre-commit-verification`, `app-audit`,
+`audit-fix`, and `loop`.
+
+```bash
+python3 ui/devloop_ui.py
+```
+
+It defaults to dry-run mode so the control flow can be tested without API calls,
+commits, pushes, or PRs. Host and sandbox modes use the existing `autoloop`
+prerequisites.
+
 ## Layout
 
 ```
 install.sh               friendly installer (interactive picker)
 skills/                  the 4 methodology skills (source of truth)
+ui/                      local progress dashboard for cartographer/audit/fix/loop runs
 sandbox/                 the reproducible Linux container image (Phase 1)
 driver/                  the Agent SDK loop driver (Phase 3)
 cli/                     the `autoloop` CLI (Phase 4)
