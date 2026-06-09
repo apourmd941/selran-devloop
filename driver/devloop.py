@@ -26,6 +26,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import os
 import re
@@ -443,8 +444,7 @@ def main() -> int:
         return 2
 
     cfg = LoopConfig.load(args.repo, args.config)
-    import anyio
-    report = anyio.run(run_loop, cfg, args.dry_run)
+    report = asyncio.run(run_loop(cfg, args.dry_run))
 
     print("\n[devloop] ===== run report =====")
     print(json.dumps(report, indent=2))

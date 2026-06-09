@@ -137,7 +137,7 @@ run() {
     echo "----------------------------------------------------------------"
     cleanup_run "$repo" "$base" "$branch" "$wt"
     note "dry-run complete (worktree + empty branch cleaned up)."
-    return 0
+    return "$rc"
   fi
 
   # ---- push + open PR ------------------------------------------------------
