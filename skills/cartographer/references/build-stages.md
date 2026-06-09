@@ -175,9 +175,9 @@ Precision in practice: ~70-85% on typical Rust codebases. Good enough for blast-
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "generated_at": "2026-05-19T01:00:00Z",
-  "files_covered": ["path/to/file1.rs", "path/to/file2.rs", ...],
+  "file_hashes": {"path/to/file1.rs": "sha256:...", "path/to/file2.rs": "sha256:..."},
   "edges": {
     "backend-rs::services::mail::categorize::categorize": {
       "calls": [{"target": "backend-rs::db::insert"}, ...],
@@ -188,7 +188,7 @@ Precision in practice: ~70-85% on typical Rust codebases. Good enough for blast-
 }
 ```
 
-On subsequent runs, cartographer checks the cache's `files_covered` against the current file set. If ≥90% of files are unchanged, the cache is fresh — apply edges directly to functions.json without re-extraction.
+On subsequent runs, cartographer compares the cache's `file_hashes` against the current files' content hashes. If ≥90% of current files have **unchanged content** (hash match — not merely "the file still exists"), the cache is fresh — apply edges directly to functions.json without re-extraction.
 
 If less than 90% overlap, the cache is stale. Cartographer either prompts the user, runs unconditionally (if `--with-call-graph`), or skips (if `--non-interactive` without `--with-call-graph`).
 

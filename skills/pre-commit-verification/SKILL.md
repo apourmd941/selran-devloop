@@ -1,6 +1,6 @@
 ---
 name: pre-commit-verification
-version: 0.5.1
+version: 0.6.0
 description: Use this skill whenever the user asks to verify, test, check, validate, or confirm their repo before committing or pushing — including requests like "do a pre commit verification", "run local tests before push", "deep local verification", "fix everything and test it", "make sure this is ready", or "run the full verification pass". Covers stack-aware test discovery, unit/integration/e2e tests, smoke tests, lint checks, type checks, builds, and a runtime smoke/integration harness (binary-launch, migration idempotency, provider mocks, headless webview, env probe) for desktop apps. Do NOT use for a single narrow test unless explicitly requested.
 ---
 
@@ -196,6 +196,8 @@ Could not verify locally: <list, or none>
 ```
 
 When a harness category FAILS and you cannot auto-fix it, report it with enough location detail (test name, the file/route/migration involved) that it can become a finding. app-audit converts these into severity-graded findings in `AUDIT_LOG.md`; audit-fix then re-runs that specific check to re-verify before and after fixing.
+
+**Known-failure baselines.** This skill reports results; it does not decide what a failure means for the caller. When invoked by audit-fix mid-remediation, some checks are *expected* to fail (they correspond to findings not yet fixed) — audit-fix compares the per-check results against its Phase 0 baseline and only treats *new* failures as regressions. So: always report every check's result faithfully, including expected failures, and never summarize a run as simply "RED" without the per-check breakdown — the breakdown is what makes baseline comparison possible.
 
 ## Failure Handling
 

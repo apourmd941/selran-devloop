@@ -21,10 +21,10 @@ four, which is what kills the version drift we used to hit.
 
 | Skill | Version | Role |
 |---|---|---|
-| cartographer | 0.4.1 | Maps the codebase (`.codemap/*.json`) |
-| pre-commit-verification | 0.5.1 | Runs tests + the smoke/integration harness |
-| app-audit | 0.5.0 | Convergent audit; folds pre-commit + harness results into AUDIT_LOG |
-| audit-fix | 0.5.0 | Fixes findings safely (per-fix verify, revert-on-fail) |
+| cartographer | 0.5.0 | Maps the codebase (`.codemap/*.json`) |
+| pre-commit-verification | 0.6.0 | Runs tests + the smoke/integration harness |
+| app-audit | 0.6.0 | Convergent audit; folds pre-commit + harness results into AUDIT_LOG |
+| audit-fix | 0.6.0 | Fixes findings safely (per-fix verify vs. baseline, revert-on-fail) |
 
 ## Installing — pick what you want
 

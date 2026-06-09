@@ -17,6 +17,8 @@ Explicit always wins. If a file has `@spec: v3 §8.1` and inference would also s
 
 If explicit and inferred would produce the same ref, deduplicate to keep the explicit entry only.
 
+**Execution-path difference:** the table's "inferred by cartographer reading file + spec" row describes the **direct path** (Claude doing the build inline). The **script path** (`_build.py`) cannot read and reason about the spec — its only inference source is the project's `tag_spec_map` in `.codemap/spec-config.yml`, and with no map configured it records explicit refs only. The template ships no hardcoded tag→section numbers; those are project-specific by nature.
+
 ---
 
 ## Function-level propagation (v0.3.0 — Stage 2 of the build)

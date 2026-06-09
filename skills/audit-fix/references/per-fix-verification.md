@@ -35,16 +35,25 @@ The user can choose to proceed without — but they've been told.
 
 ## When to run pre-commit
 
-After every single fix. No batching, no exceptions:
+After every single fix. No batching, no exceptions. **Results are always interpreted against the Phase 0 baseline** (`.audit/audit-fix-baseline.json`) — while other findings remain open, their checks are still expected to fail, and only a *new* failure is a regression:
 
 ```
 Apply fix N
   ↓
-Run pre-commit
+Run pre-commit, diff results against the baseline
   ↓
-Pass? → mark finding fixed, commit, proceed to fix N+1
-Fail? → revert, report, ask user
+Target check passes, no NEW failures        → mark finding fixed, update baseline
+                                              (this check is now "must pass"), commit,
+                                              proceed to fix N+1
+Target check still fails                    → fix didn't land: revert, count a failed
+                                              attempt, re-approach or ask
+NEW failure (passed in baseline, or was     → REGRESSION: revert, report, ask user
+fixed earlier in this pass and broke again)
+Known-open failure (still maps to an open   → expected; not a regression; ignore
+finding that hasn't been fixed yet)
 ```
+
+Without the baseline comparison, the loop deadlocks on multi-finding harness work: fixing harness finding #1 while finding #2 is still open would read as "pre-commit failed → regression → revert" even though the fix was correct.
 
 The exception is **explicit user override**: if the user says "batch the fixes and verify at the end" the skill complies, but warns:
 > "Batching means a regression introduced by an early fix won't be caught until all fixes are applied. If pre-commit fails at the end, isolating the cause may require git bisecting through the commits. Proceed with batching?"

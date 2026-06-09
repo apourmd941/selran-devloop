@@ -1,6 +1,6 @@
 ---
 name: cartographer
-version: 0.4.1
+version: 0.5.0
 description: Build and maintain a persistent codemap (.codemap/*.json — structure, dependencies, functions, warnings) of any codebase. Function-level extraction runs in four stages: tags, spec_refs, qualified names + git blame default-on; call graph opt-in. Use whenever the user asks to build, refresh, or rebuild the codemap; to map the code; to find duplicate, stale, or unused files; or as part of an audit (app-audit Phase 0.5). Incremental refresh after the first full build. Works on any language.
 ---
 
@@ -65,7 +65,9 @@ Cartographer can run in either of two ways, and a project should pick one and st
 cp ~/.claude/skills/cartographer/references/_build.py /path/to/project/.codemap/_build.py
 ```
 
-The script writes `state.json.cartographer_version = "0.4.0"` and `state.json.build_metadata.build_method = "py-script-richer"`. If you see those values, the v0.4 script ran. Anything else means the template wasn't copied in, or the script wasn't re-run after the template was updated. (This is the most common gotcha after a skill upgrade.)
+The script writes `state.json.cartographer_version` matching the `CARTOGRAPHER_VERSION` constant in the template header (check the template, don't hardcode an expectation — this doc and the script have drifted before) and `state.json.build_metadata.build_method = "py-script-richer"`. If the project's `state.json` shows an older version than the current template, the template wasn't re-copied after a skill upgrade — the most common gotcha. The script detects this itself: a version mismatch triggers an automatic full rebuild on next run.
+
+**Script capabilities — the honesty contract.** The script records exactly what it can do in `state.json.capabilities`: which warning detectors ran (`detectors_run`), which languages got function/import extraction, and that import resolution and the stage-4 call graph are best-effort static analysis. **Skills that consume the codemap (app-audit, audit-fix) must read `capabilities` before trusting a field** — if a detector or language isn't listed, that data wasn't produced and the consumer falls back to inline analysis (Read/Grep) for that piece. An empty array in `warnings.json` means "detector ran, found nothing" only when the detector appears in `detectors_run`.
 
 **Direct path (small projects, no Python available, ad-hoc one-offs).** Claude does the extraction inline using its own tools (Read, Grep, etc.). Slower and less deterministic than the script, but useful when there's no `_build.py` and the project is small enough that token cost is fine.
 
@@ -101,13 +103,16 @@ python3 .codemap/_build.py --non-interactive     # never prompts; stage 4 off un
 python3 .codemap/_build.py --with-call-graph     # run stage 4 unconditionally
 python3 .codemap/_build.py --no-call-graph       # skip stage 4 even if the cache is fresh
 python3 .codemap/_build.py --rebuild-call-graph  # force-rebuild the stage 4 cache
+python3 .codemap/_build.py --full                # ignore prior state; full rebuild
 ```
+
+The script refreshes incrementally by default: each file's content hash is compared against `state.json.per_file_state`, and unchanged files reuse their prior analysis (no re-extraction, no per-file `git log`). Only changed, new, or deleted files pay the cost. `--full` forces a from-scratch rebuild.
 
 The SessionStart hook should use `--non-interactive`, otherwise the script will block on the prompt.
 
 ### Stage 4 cache
 
-When stage 4 runs, it writes `.codemap/_call_graph_cache.json`. On subsequent runs, if ≥90% of files are unchanged, the cache is reused silently. If <90% overlap, the cache is treated as stale (re-extracted or skipped per the flags above).
+When stage 4 runs, it writes `.codemap/_call_graph_cache.json`, including a per-file content-hash snapshot. On subsequent runs, if ≥90% of current files have **unchanged content** (hash comparison, not just file presence), the cache is reused silently. Below 90%, the cache is treated as stale (re-extracted or skipped per the flags above).
 
 ### What a rich function entry looks like (stages 1–3 active)
 
@@ -216,6 +221,8 @@ Any filename that appears in more than one location, e.g. `auth.ts` in both `src
 
 Why: ambiguous imports may resolve to the wrong file, and the running app may load a different version than the developer expects.
 
+**Exception:** basenames that are duplicated *by convention* are never flagged — `mod.rs`, `lib.rs`, `__init__.py`, `index.ts`, Next.js `page.tsx`/`layout.tsx`/`route.ts`, `README.md`, `Cargo.toml`, `package.json`, and the like. The list lives in `CONVENTIONAL_BASENAMES` in `_build.py`; extend it per project rather than tolerating noise.
+
 ### Detector 2 — Suspicious names
 
 Match filenames against patterns that signal stale or backup files:
@@ -255,13 +262,12 @@ Implementation: shingling on lines or tokens, Jaccard similarity over hash sets.
 
 This is the detector that most directly catches unfinished refactors.
 
-### Detector 6 — Build output newer than source
+### Detector 6 — Stale build output (older than source)
 
-In generated output directories (`dist/`, `build/`, `.next/`, `target/`):
-- `.js`/`.css` files newer than the source they were compiled from
-- Compiled outputs with no corresponding source
+In generated output directories (`dist/`, `build/`, `.next/`, `out/`):
+- Output whose newest file is **older** than the latest source change — the launched app may be serving stale code
 
-Severity: **medium**. Signals that the build may be serving stale or orphaned output.
+Severity: **medium**. The fix is a rebuild. (`target/` is excluded — cargo manages its own staleness. Orphaned outputs with no corresponding source are a direct-path check; the script only does the mtime comparison.)
 
 ### Detector 7 — Canonical version designation
 
@@ -269,10 +275,10 @@ For every cluster of duplicate-basename or near-duplicate files from detectors 1
 
 Designation algorithm (priority order):
 
-1. **Import-graph reachability.** If only one duplicate is reachable from a known entry point, that one is canonical. The others are dead.
-2. **Most recent meaningful commit.** Among files that are all reachable (or all orphaned), pick the one whose latest non-cosmetic commit is newest. Exclude format-only commits.
+1. **Import-graph reachability.** If only one duplicate is reachable from a known entry point, that one is canonical. The others are dead. If imports are *split* between candidates, designation is **ambiguous** (see below).
+2. **Most recent meaningful commit.** Among files that are all reachable (or all orphaned), pick the one whose latest non-cosmetic commit is newest. (The script approximates this with the latest commit touching the file, no cosmetic filtering; the direct path can be smarter.)
 3. **Higher LOC and lower suspicious-name score.** `auth.ts` beats `auth.old.ts` even at similar commit ages.
-4. **First alphabetically by path.** Last-resort tiebreak; note it in the warning so the user knows it was arbitrary.
+4. **First alphabetically by path.** Last-resort tiebreak, recorded as `alphabetical_tiebreak` with a note that it was arbitrary — treat like `ambiguous` for review purposes.
 
 Recorded in `warnings.json` under `canonical_designations`:
 
@@ -326,7 +332,12 @@ supporting_docs:
 operational_docs:
   - AGENTS.md
   - STYLE.md
+tag_spec_map:            # optional: drives tag-based spec_refs inference
+  auth: "§8.1 @ 0.85"    # files tagged `auth` → inferred ref §8.1, confidence 0.85
+  worker: "§6 @ 0.75"
 ```
+
+`tag_spec_map` is how tag-based inference gets its section numbers. **The `_build.py` template ships with no hardcoded tag→section mappings** — section numbers are inherently project-specific, and a baked-in map would write wrong inferred refs into every other project's codemap. No `tag_spec_map` → the script records only explicit `@spec:` annotations (the direct path may still infer by reading the spec).
 
 When this file exists, Cartographer uses it as authoritative. When it doesn't, Cartographer picks the best candidate and tells the user:
 
@@ -362,6 +373,8 @@ For each such file, Cartographer reads the canonical spec's section list plus th
 ```
 
 Inferred refs below confidence 0.7 are not recorded — better no inference than wrong inference.
+
+How inference happens depends on the execution path: the **direct path** reads the canonical spec and decides per file; the **script path** only applies the project's `tag_spec_map` from `spec-config.yml` (it cannot read and reason about the spec). No map configured → script emits explicit refs only.
 
 Full details and examples: `references/spec-extraction.md`.
 

@@ -1,6 +1,6 @@
 ---
 name: audit-fix
-version: 0.5.0
+version: 0.6.0
 description: Address findings from a completed app-audit run, in safe order, with per-fix verification. Use whenever the user asks to fix the audit findings, address them, work through them, or run audit-fix. Reads AUDIT_LOG.md; uses cartographer's call graph (stage 4) to order fixes by blast radius — pure-local first, large-blast-radius last, critical severity prioritized within each tier. Runs pre-commit-verification after each fix; reverts and stops on failure. Refreshes cartographer and re-runs app-audit on the full original scope when done.
 ---
 
@@ -39,7 +39,7 @@ Trigger this skill when the user asks to:
 - `AUDIT_LOG.md` exists with at least one open finding from the latest audit round
 - Cartographer's `.codemap/` is present and reasonably fresh
 - Cartographer stage 4 (call graph) is available — see Phase 0 step 0.7
-- Pre-commit-verification is configured and currently passes
+- Pre-commit-verification is configured and passes **modulo known-open findings** (see Phase 0 step 4 — failures that ARE the open findings don't block; that would deadlock the loop)
 - Working tree is clean (no uncommitted changes that would conflict with fixes)
 
 If any of these are missing, the skill explains what's needed and exits without making changes.
@@ -53,7 +53,7 @@ These never relax:
 3. **Never push to remote.** All work is local. Local commits fine; pushing isn't.
 4. **Never re-grade severity.** Audit decided; audit-fix executes. If the skill thinks a finding is worse than graded, append an auditor note — do not change the severity field.
 5. **Never skip per-fix verification.** Every fix runs pre-commit before moving on.
-6. **Never propagate a regression.** A failed verification → revert the single fix immediately → stop and ask the user.
+6. **Never propagate a regression.** A verification that surfaces a *new* failure (one not in the Phase 0 baseline of known-open findings) → revert the single fix immediately → stop and ask the user. Known-open failures from findings not yet fixed are expected and are not regressions.
 7. **Never auto-fix newly-surfaced findings from the re-audit.** Reporting is in scope; remediation requires a new invocation.
 8. **Never modify findings with status `deferred` or `dismissed`.** The user already decided.
 9. **Never fix findings on stale-candidate files by patching.** The right fix is removing or renaming the file. If file removal hasn't been authorized, mark `deferred — file disposition pending`.
@@ -66,9 +66,13 @@ These never relax:
 
 1. **Read `AUDIT_LOG.md`** and find the latest audit round (the most recent `## Audit run:` heading). Extract its findings list, severities, locations, current status (`open` | `fixed` | `deferred` | `dismissed`), and each finding's **`Source`** (`static-review` | `smoke-harness [N]` | `pre-commit`). AUDIT_LOG is the single source — app-audit folds pre-commit and smoke/integration harness results into it, so architectural findings and runtime/launch failures arrive here together. There is no separate pre-commit log to read.
 2. **Filter to actionable findings:** anything with status `open`. Ignore the rest. Note each finding's source — it determines how Step 2.1 re-verifies it: `static-review` → re-read code; `smoke-harness`/`pre-commit` → re-run that specific check (behavioral findings can't be re-verified by reading code).
-3. **Read `.codemap/state.json`** to confirm cartographer is fresh (refresh commit within ~5 of HEAD). If stale, **refresh cartographer silently** before continuing (per cartographer's self-refresh policy).
-4. **Confirm pre-commit-verification passes.** Run it once at the start. If it fails:
-   > "Pre-commit is failing before any fixes have been made. The repo isn't in a clean baseline. Fix the failing pre-commit checks first, then re-run audit-fix."
+3. **Read `.codemap/state.json`** to confirm cartographer is fresh (refresh commit within ~5 of HEAD). If stale, **refresh cartographer silently** before continuing (per cartographer's self-refresh policy). Also read `state.json.capabilities`: if the codemap was built by a script whose capabilities don't include the data a step needs (e.g., `canonical_designations` not in `detectors_run`, or a language missing from `import_extraction_languages`), don't trust the empty field — compute that piece inline (Read/Grep) or ask cartographer's direct path to fill it.
+4. **Run pre-commit-verification once and capture the BASELINE.** Record every per-check result (existing checks + each harness category) as the baseline for this pass. Then classify any failures:
+   - **Expected failures** — failures that correspond to an open finding in the audit log (match by harness category for `smoke-harness [N]` findings, by check name for `pre-commit` findings). These are *the things this pass exists to fix*. They do **not** block; without this rule, a harness finding would deadlock the loop (the audit converts the failure into a finding, then audit-fix refuses to start because the failure makes pre-commit red).
+   - **Unexpected failures** — failures with no corresponding open finding (broken build, failing unit tests, a harness category nobody flagged). These DO block:
+   > "Pre-commit has failures that don't correspond to any open finding: [list]. The repo isn't in a known baseline. Fix those first (or run app-audit so they become findings), then re-run audit-fix."
+
+   Save the baseline (per-check pass/fail) to `.audit/audit-fix-baseline.json` — Step 2.3 compares against it.
 5. **Check working tree is clean.** If uncommitted changes:
    > "Working tree has uncommitted changes. Commit or stash them first, then re-run audit-fix."
 6. **Detect partial prior fixes.** If any findings have status `open` but the cited file:line no longer matches the original code (someone fixed manually without updating the log):
@@ -79,7 +83,7 @@ These never relax:
    Without stage 4, tier classification silently degrades to file-level only — which masks the blast radius the skill exists to surface. The whole point of audit-fix's order is the call graph; don't skip this step.
 
 Report Phase 0 state:
-> "Preflight complete. 14 open findings across 3 categories. Codemap fresh (stages 1–4 active). Pre-commit clean. Ready to plan."
+> "Preflight complete. 14 open findings across 3 categories. Codemap fresh (stages 1–4 active). Pre-commit baseline captured: 2 expected failures (harness [3] migration idempotency, harness [2] dev/prod matrix — both are open findings), 0 unexpected failures. Ready to plan."
 
 ### Phase 1 — Plan
 
@@ -183,13 +187,21 @@ The hard rules from the top of this file apply here, especially:
 - No changes to `.gitignore`, `.env*`, dependency manifests without approval
 - Stale-candidate files get file-removal fixes, not patches
 
-#### Step 2.3 — Run pre-commit-verification immediately
+#### Step 2.3 — Run pre-commit-verification immediately, compare against the baseline
 
 After each fix, run pre-commit-verification (or the equivalent: tests, lint, typecheck, build). Mandatory. No batching. Because pre-commit-verification now includes the smoke/integration harness, this per-fix run also re-runs the launch/integration tests — so a fix that resolves one smoke finding but breaks another launch path (e.g., fixing CORS but breaking migration idempotency) is caught immediately, not at the end.
 
-**If pre-commit passes:** proceed to step 2.4. (For a `smoke-harness`-sourced finding, confirm the specific harness category that was failing now passes — that's the proof the fix landed.)
+**Interpret the result against the Phase 0 baseline, not as a bare pass/fail.** While other findings remain open, their checks are still expected to fail — a red result is only a regression if it's *new*. Classify each failing check:
 
-**If pre-commit fails:** the fix introduced a regression.
+- **Known-open failure** (in the baseline AND still corresponds to an open finding): expected. Not a regression. Continue.
+- **Target check still failing** (the check this fix was supposed to resolve): the fix didn't land. Revert, count as a failed attempt, and re-approach or ask the user (headless: defer after the attempt limit — see "Non-interactive mode").
+- **New failure** (passed in the baseline, or was already fixed earlier in this pass and now fails again): **regression.** Trigger the revert flow below.
+
+After classifying, update the baseline: when a fix lands, its check moves to "must pass" — re-breaking it later in the pass is a regression, not a known-open failure.
+
+**If there are no new failures and the target check passes:** proceed to step 2.4. (For a `smoke-harness`-sourced finding, the specific harness category passing is the proof the fix landed.)
+
+**If there is a new failure:** the fix introduced a regression.
 
 1. **Revert the fix** (`git checkout` or `git restore` on the changed files)
 2. **Run pre-commit again** to confirm the baseline is restored
@@ -208,7 +220,7 @@ When a fix succeeds (pre-commit passes), update the finding's status in `AUDIT_L
 
 ```
 - [Critical] auth/refresh.ts:88 — OAuth token in error log — fixed
-  (audit-fix 0.4.0, commit abc1234, 2026-05-19T23:45:00Z)
+  (audit-fix <version from this file's frontmatter>, commit abc1234, 2026-05-19T23:45:00Z)
 ```
 
 **Default: one commit per fix** so `git log` reflects the audit-fix flow. The user can override with "batch the commits," but granular history is the default.
@@ -220,7 +232,7 @@ audit-fix: [Severity] short description (finding N.M)
 Fixes [finding location].
 [1-2 lines on what changed.]
 
-Audit round: [N], audit-fix 0.4.0.
+Audit round: [N], audit-fix <version from this file's frontmatter>.
 ```
 
 #### Step 2.5 — Move to the next finding
@@ -262,7 +274,7 @@ Final summary, written as a new entry under the current audit round in `AUDIT_LO
 ```
 ### Audit-fix pass — YYYY-MM-DD
 
-**Audit-fix version:** 0.4.0
+**Audit-fix version:** <version from this file's frontmatter>
 **Cartographer state:** stages 1–4 active, refreshed post-fix
 **Findings addressed:** 12 of 14 planned (2 deferred per user)
   - Tier 0: 5 fixed cleanly
@@ -287,6 +299,17 @@ Recommend a next-step cadence:
 - If everything cleared: "Recommend running audit again in 1–2 weeks or after the next major feature."
 - If new findings surfaced: "Recommend a follow-up audit-fix pass on the new findings."
 - If many findings deferred: "Recommend addressing deferred items before next audit."
+
+## Non-interactive mode (driver / headless invocation)
+
+When audit-fix is invoked by an automation driver (e.g., the DevLoop driver) or any context where no user is available to answer questions, the interactive gates get documented defaults instead of blocking:
+
+- **Phase 1.4 plan approval:** auto-approve the computed plan as-is (it is already the safe order). Log "plan auto-approved (non-interactive)" in AUDIT_LOG.md.
+- **Step 2.3 failures:** after a failed fix attempt, retry once with a different approach; after **2 failed attempts** on the same finding, revert, mark it `deferred — attempts exhausted (non-interactive)`, restore the baseline, and continue with the next finding. Never loop on one finding.
+- **Hard-rule approvals (schema migrations, dependency/config manifests, file removal):** these never get auto-approved. Mark the finding `deferred — requires user approval` and continue. The hard rules hold in every mode.
+- **Phase 4 newly-surfaced findings:** report only, exactly as in interactive mode. Never auto-fix.
+
+Detect the mode from context: an explicit instruction in the invoking prompt ("mark deferred and continue", "do not ask"), or an environment where asking is impossible. When in doubt, ask once — if no answer is possible, fall back to these defaults and say so in the log.
 
 ## How audit-fix relates to the other skills
 

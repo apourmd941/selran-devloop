@@ -1,6 +1,6 @@
 ---
 name: app-audit
-version: 0.5.0
+version: 0.6.0
 description: Run a rigorous, repeatable, convergent audit of a codebase covering schema integrity, data flow, security, concurrency, resource bounds, spec compliance, operational readiness, and test coverage. Use whenever the user asks to audit, review, QA, verify, or validate a codebase — especially before a release or after a major refactor. Consumes cartographer's codemap for targeted retrieval; produces a persistent AUDIT_LOG.md so audits converge across rounds. Pre-commit-verification first for a clean baseline; hands off to audit-fix at the end.
 ---
 
@@ -182,6 +182,16 @@ If the spec has moved (e.g., v3 → v4) but the codemap still tags `spec_refs` w
 
 Cartographer handles the actual re-tagging; this phase just detects the drift and triggers it. If sections moved or renumbered, log the affected files for human review.
 
+### Step 0.5.3b — Check codemap capabilities
+
+Read `state.json.capabilities` (script-built codemaps record exactly what they produced). Before trusting any codemap field during Phase 3:
+
+- A warning category is only "verified empty" if its detector appears in `capabilities.detectors_run`. Detector not listed → that check wasn't performed; do it inline or note it as uncovered.
+- `imported_by` / `functions` data exists only for languages in `capabilities.import_extraction_languages` / `function_extraction_languages`. For other languages, fall back to grep.
+- `capabilities.import_resolution: "best-effort-static"` means orphan and blast-radius data can have false positives/negatives — re-verify before citing in a finding (the existing hard rule already requires re-reading the file).
+
+If `capabilities` is absent entirely, the codemap predates v0.5 — treat all warnings.json categories as best-effort and recommend a rebuild with the current template.
+
 ### Step 0.5.4 — Note codemap state in the audit log
 
 Record:
@@ -202,7 +212,7 @@ If `warnings.json` has any **high-severity** warnings — especially duplicate f
 > "Heads up — cartographer flagged 1 high-severity warning:
 > - `src/auth/refresh.ts` and `src/auth/refresh_v2.ts` are ~87% identical. Cartographer designated `refresh.ts` as canonical (it's imported by `workers/sync.ts`; `refresh_v2.ts` has no importers). Audit findings on `refresh_v2.ts` will be downgraded to Info pending your decision. Suggested fix: remove `refresh_v2.ts` or archive outside source tree."
 
-For ambiguous canonical designations (cartographer couldn't decide which is current), the audit pauses and asks the user to resolve before proceeding. Findings on the wrong version of a file are noise.
+For ambiguous canonical designations (cartographer couldn't decide which is current), the audit pauses and asks the user to resolve before proceeding. Findings on the wrong version of a file are noise. (Non-interactive runs can't pause — see "Non-interactive mode" below: treat both candidates as canonical and flag the ambiguity prominently in the log.)
 
 ### How Phase 3 will use the codemap
 
@@ -552,6 +562,8 @@ When the audit completes Phase 5 and there are open findings, mention audit-fix 
 
 > "Audit complete. 14 findings recorded in AUDIT_LOG.md (1 critical, 3 high, 6 medium, 4 low). When you're ready to work through these, invoke audit-fix — it'll order the fixes by blast radius using cartographer's call graph, run pre-commit-verification after each fix, and re-audit when done to catch any regressions."
 
+Note for the handoff: open `smoke-harness`/`pre-commit`-sourced findings mean pre-commit is *expected* to be red on those specific checks. That's fine — audit-fix's preflight treats failures matching open findings as its expected baseline, not as a blocker (the per-category results recorded in Step 0.3 are what it matches against).
+
 Don't auto-invoke audit-fix. The user decides when to start fixing. They may want to:
 - Review findings manually first
 - Defer some findings to a later round
@@ -594,6 +606,17 @@ The goal is for audits to feel routine and bounded, not crisis-driven.
 If the user is still seeing audit-after-audit find new things, check whether the skill is actually being followed end to end. Skipping Phase 0 (no clean baseline), Phase 0.5 (no codemap), Phase 1 (no checklist), Phase 2 (no agreed scope), or Phase 5 (no coverage declaration) reproduces the original problem.
 
 ---
+
+## Non-interactive mode (driver / headless invocation)
+
+When app-audit is invoked by an automation driver (e.g., the DevLoop driver) or any context where no user can answer mid-run, the confirmation gates get documented defaults instead of blocking:
+
+- **Phase 2 scope agreement:** use the scope from the invoking prompt if one was given; otherwise carry over the open scope from the last audit round; otherwise (first audit) all categories. Log "scope auto-selected (non-interactive): [list]" instead of waiting for confirmation.
+- **Phase 0.5.5 ambiguous canonical designations:** don't pause. Treat each ambiguous cluster's candidates as canonical (better to over-flag than miss findings on running code), record a High operational-readiness finding "ambiguous canonical designation needs human resolution," and continue.
+- **Phase 3.6 "when unsure, ask":** record the verdict as **Cannot verify — needs user input**, with the question that would have been asked. Never guess.
+- **Phase 1.3 checklist refresh offers / Phase 0.5.2 gitignore notes:** log the recommendation; don't wait.
+
+Everything else — severity grading, the no-finding-without-reading-the-file rule, coverage declaration — is identical in both modes.
 
 ## Working with very large codebases
 

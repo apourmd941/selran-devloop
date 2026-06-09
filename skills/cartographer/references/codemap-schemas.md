@@ -344,7 +344,8 @@ Detector output. The "running stale code" prevention layer.
 - `summary` at the top totals warnings across all categories for at-a-glance reading
 - `suggested_action` is a one-liner; never a multi-step plan (that's the user's call)
 - `canonical_designations.designation_reason` enum: `import_graph_reachability` | `most_recent_commit` | `loc_and_naming` | `alphabetical_tiebreak` | `ambiguous`
-- When `designation_reason` is `ambiguous`, severity must be `high` — these are the cases most likely to produce "running stale code" failures because *nobody* knows which version is current.
+- When `designation_reason` is `ambiguous` or `alphabetical_tiebreak`, severity must be `high` — these are the cases most likely to produce "running stale code" failures because *nobody* knows which version is current. Near-duplicate-derived clusters are also `high` regardless of reason.
+- `warnings.json` also carries `detectors_run` (which detectors actually executed this build) and `codemap_drift` (drift events app-audit appends in its Phase 0.5.6; preserved across refreshes while the affected file is unchanged).
 
 ---
 
@@ -354,28 +355,43 @@ Internal bookkeeping. Not for human consumption directly; used by Cartographer's
 
 ```json
 {
-  "schema_version": 1,
-  "cartographer_version": "0.1.0",
+  "schema_version": 2,
+  "cartographer_version": "0.5.0",
   "created_at": "2026-05-10T09:00:00Z",
   "last_full_build_at": "2026-05-10T09:00:00Z",
   "last_full_build_commit": "abc123def",
   "last_refresh_at": "2026-05-17T14:22:00Z",
   "last_refresh_commit": "ghi789jkl",
+  "spec_config_hash": "9f2c4ab1e0d83a77",
   "build_metadata": {
     "files_processed": 247,
+    "files_analyzed": 12,
+    "files_reused": 235,
     "languages_detected": ["typescript", "rust"],
-    "total_duration_seconds": 412
+    "build_method": "py-script-richer",
+    "stages_run": ["1_tags", "2_spec_refs", "3_qualified_names"]
+  },
+  "capabilities": {
+    "incremental_refresh": true,
+    "respects_gitignore": true,
+    "function_extraction_languages": ["rust", "python", "typescript", "javascript"],
+    "import_extraction_languages": ["rust", "python", "typescript", "javascript"],
+    "import_resolution": "best-effort-static",
+    "detectors_run": ["duplicate_basenames", "suspicious_names", "backup_directories",
+                      "orphan_files", "near_duplicates", "stale_build_output",
+                      "canonical_designations"],
+    "call_graph": "regex-best-effort (stage 4, opt-in)"
   },
   "per_file_state": {
     "src/auth/refresh.ts": {
-      "last_refreshed_commit": "ghi789jkl",
       "content_hash": "sha256:a3f5...",
-      "last_modified_in_git": "2026-05-17T13:45:00Z"
+      "last_commit": "ghi789jkl",
+      "last_commit_ts": 1747500300
     },
     "src/workers/categorize.rs": {
-      "last_refreshed_commit": "def456",
       "content_hash": "sha256:b2c8...",
-      "last_modified_in_git": "2026-05-12T08:11:00Z"
+      "last_commit": "def456",
+      "last_commit_ts": 1747033860
     }
   }
 }
@@ -383,10 +399,13 @@ Internal bookkeeping. Not for human consumption directly; used by Cartographer's
 
 **Field notes:**
 
-- `content_hash` is SHA-256 of the file contents. Used to detect uncommitted changes (if hash on disk doesn't match the state, the entry is stale).
+- `content_hash` is SHA-256 of the file contents. The incremental-refresh key: a file whose on-disk hash matches its entry reuses its prior analysis; a mismatch (including uncommitted edits) triggers re-analysis.
 - `last_full_build_commit` is the SHA at which a full rebuild was last performed. Incremental refreshes don't update this; only full rebuilds do.
 - `last_refresh_commit` is the most recent commit at which any refresh (full or incremental) ran.
-- `cartographer_version` allows future Cartographer versions to detect incompatible schemas and trigger a rebuild.
+- `cartographer_version` allows future Cartographer versions to detect incompatible schemas and trigger a rebuild. The script auto-triggers a full rebuild on any mismatch with its own version.
+- `capabilities` is the **honesty contract**: exactly what this build produced. Consumers (app-audit, audit-fix) must check it before trusting a field — a detector absent from `detectors_run` means its warnings array is "not checked," not "verified empty."
+- `last_commit` / `last_commit_ts` are the file's most recent git commit (hash, unix time), used by detector 7's most-recent-commit designation.
+- `spec_config_hash` detects spec-config.yml changes — a mismatch forces docs and spec_refs re-analysis even for unchanged files.
 
 ---
 
