@@ -137,6 +137,13 @@ Phase 1's container runtime). See `sandbox/PHASE{1..5}-FINDINGS.md` and
 - Per-fix verification + revert-on-failure (audit-fix enforces this).
 - Human review gate: the loop opens a PR; you merge. Nothing auto-touches main.
 
+## Feedback & contributions
+
+Bug reports and feature requests are very welcome — [open an issue](https://github.com/apourmd941/selran-devloop/issues).
+Pull requests are not accepted: to keep authorship and licensing unambiguous, all
+code in this repository is written by the author. If you've found a fix, describe
+it in an issue and it will be credited in the changelog.
+
 ## Attribution & license
 
 Selran Greenloop — © 2026 Selran. Created and written by **Aidin Eslampour**.
