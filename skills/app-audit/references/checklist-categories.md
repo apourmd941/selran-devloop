@@ -1,6 +1,6 @@
 # Standard Audit Checklist Categories
 
-When generating `AUDIT_CHECKLIST.md` from a design spec (Phase 1.3 of the audit skill), use these nine categories as the default scaffold. Add or remove categories based on the spec, but cover at least these areas for any nontrivial app.
+When generating `AUDIT_CHECKLIST.md` from a design spec (Phase 1.3 of the audit skill), use these ten categories as the default scaffold. Add or remove categories based on the spec, but cover at least these areas for any nontrivial app.
 
 **Static vs runtime:** these checklist items are mostly *static* — verified by reading code and the spec. They cannot prove runtime behavior. The runtime layer is the smoke/integration harness run by pre-commit-verification, whose per-category failures app-audit folds into the findings (Phase 0.3). A few items below are explicitly the static half of a runtime concern (e.g., "CORS middleware is registered" is static; "CORS header is correct under a real request" is harness [1+4]). Both halves are needed — presence ≠ correct behavior. See "Runtime harness mapping" at the end.
 
@@ -175,6 +175,19 @@ For each category below: a short description, why it matters, representative che
 - Integration tests cover the spec-defined critical paths (every "must" in spec §X has an integration test verifying it)
 - Test failures produce useful diagnostics (no `assert(condition)` without a message; no opaque `expect(x).toEqual(y)` for complex objects without context)
 
+**Acceptance-map completeness (the spec→test mapping):**
+
+The deepest version of "integration tests cover the critical paths" is mechanical, not impressionistic: `.audit/acceptance-map.md` maps every **user-facing** normative statement in the spec to the test that exercises it (format and maintenance rules: `references/acceptance-mapping.md`). This category verifies the map, because "the app runs but the feature behaves wrongly" is the failure class that boot-level smoke tests structurally cannot catch.
+
+- The acceptance map exists; if it doesn't, generating it is part of this category's work (Phase 1.3b)
+- Every user-facing must/never/always in the spec appears in the map
+- Every mapped test actually exists, is not skipped, and asserts the *promise* (not just "doesn't crash")
+- Entries marked `n/a` carry a reason ("not user-observable", "covered by harness [3]")
+- `UNMAPPED` entries are findings — severity by stakes of the promise:
+  - Data-loss, security, or privacy promise unmapped: **High**
+  - Other user-facing promise unmapped: **Medium**
+- Map references stale tests (renamed/deleted) → **Medium** (false confidence)
+
 **Codemap-assisted queries:**
 
 - `query structure.json.files where tags includes 'security-sensitive' and test_file false` → find security-sensitive non-test files
@@ -191,6 +204,39 @@ For each category below: a short description, why it matters, representative che
 - Empty or placeholder tests: **High** (worse than no tests — produces false confidence)
 
 This category benefits from a tighter pre-commit-verification (which already runs the test suite). Pre-commit confirms tests pass; this audit confirms tests *exist and are meaningful*.
+
+---
+
+## Category 10 — Diagnosability
+
+**Why it matters:** no process drives residual errors to zero. The errors that slip past every check become either "found and fixed in minutes" or "mystery that erodes trust for weeks" — and the difference is entirely decided *before* the error happens, by whether the app can tell you what went wrong. This category is what converts "there were always remaining errors" into "errors get found fast."
+
+**Representative items:**
+
+- Every caught-and-handled error is logged with enough context to reproduce: operation, entity IDs, relevant state — not just the exception message
+- Every *swallowed* error (intentional catch-and-continue) logs at least once per occurrence class; silent `catch {}` is a finding even when intentional (log-then-continue is the floor)
+- Log levels are meaningful: errors are `error`, not `info`; routine operation isn't `error` (alert fatigue hides real failures)
+- A user-reported symptom can be traced: timestamps in logs, a request/operation ID that follows a pipeline across workers, or equivalent correlation
+- The running version is discoverable at runtime (version stamp in logs at startup, an about/health field, DB schema version) — "which build was this?" must be answerable
+- Crash/panic paths produce a persisted artifact (log line, crash file, OS crash-reporter hookup) — a crash that leaves no trace is unfixable
+- Logs survive long enough to be useful: rotation exists, but rotation doesn't destroy the only evidence within hours
+- State needed to reproduce data bugs is inspectable: DB is queryable by a developer, or a diagnostic export exists
+- Background-worker failures are *visible* somewhere a human looks (status field, badge, health endpoint), not only in a log nobody reads
+- No PII/secrets in logs (overlaps Category 3 — here the lens is "diagnostics that are safe to actually share when asking for help")
+
+**Codemap-assisted queries:**
+- `query structure.json.files where tags includes 'worker'` → check each for failure-visibility
+- grep catch/except/`.catch(` sites → classify: rethrow / log-and-continue / silent
+
+**Common findings:** worker catches all exceptions and continues with no log (failures invisible for weeks); error logs contain the exception but not which account/message it occurred for; no version stamp anywhere, so a bug report can't be tied to a build; panic in the sync loop kills the thread silently and the UI just stops updating.
+
+**Severity guidance:**
+- Silent failure path on a data-affecting pipeline: **High**
+- Error logged without identifying context (can't reproduce from the log): **Medium**
+- No runtime version discoverability: **Medium**
+- Routine ops logged at error level (alert fatigue): **Low**
+
+The spec's §Operational-requirements section (spec-bootstrap template §9) is this category's source when one exists; in its absence, the items above are the floor.
 
 ---
 

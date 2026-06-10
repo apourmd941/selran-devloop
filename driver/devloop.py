@@ -4,7 +4,7 @@ Selran DevLoop driver — the autonomous run → find → fix → repeat loop.
 
 Built on the Claude Agent SDK (`claude-agent-sdk`), which runs Claude Code as a
 library. Each loop iteration runs a Claude Code turn that invokes the four
-methodology skills (cartographer, pre-commit-verification, app-audit, audit-fix)
+methodology skills (cartographer, pre-commit-verification, spec-bootstrap, app-audit, audit-fix)
 by name; the driver supplies the orchestration the skills don't: a state machine,
 budget caps, a stuck-detector, stop conditions, and a run report.
 
@@ -37,7 +37,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 MODEL = "claude-opus-4-7"
-SKILLS = ["cartographer", "pre-commit-verification", "app-audit", "audit-fix"]
+SKILLS = ["cartographer", "pre-commit-verification", "spec-bootstrap", "app-audit", "audit-fix"]
 
 # Sentinel lines the skills are asked to print so the driver can parse outcomes
 # without screen-scraping prose.

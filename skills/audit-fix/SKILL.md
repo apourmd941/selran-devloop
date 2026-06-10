@@ -1,6 +1,6 @@
 ---
 name: audit-fix
-version: 0.6.0
+version: 0.7.0
 description: Address findings from a completed app-audit run, in safe order, with per-fix verification. Use whenever the user asks to fix the audit findings, address them, work through them, or run audit-fix. Reads AUDIT_LOG.md; uses cartographer's call graph (stage 4) to order fixes by blast radius — pure-local first, large-blast-radius last, critical severity prioritized within each tier. Runs pre-commit-verification after each fix; reverts and stops on failure. Refreshes cartographer and re-runs app-audit on the full original scope when done.
 ---
 
@@ -57,6 +57,7 @@ These never relax:
 7. **Never auto-fix newly-surfaced findings from the re-audit.** Reporting is in scope; remediation requires a new invocation.
 8. **Never modify findings with status `deferred` or `dismissed`.** The user already decided.
 9. **Never fix findings on stale-candidate files by patching.** The right fix is removing or renaming the file. If file removal hasn't been authorized, mark `deferred — file disposition pending`.
+10. **Never mark a static-review finding `fixed` on self-review alone.** The model that wrote a fix is the worst judge of it. Critical/High static findings require adversarial re-verification (Step 2.3b); a fix whose proof is a new test requires that test to be proven able to fail (Step 2.3c).
 
 ## The five-phase workflow
 
@@ -201,7 +202,31 @@ After classifying, update the baseline: when a fix lands, its check moves to "mu
 
 **If there are no new failures and the target check passes:** proceed to step 2.4. (For a `smoke-harness`-sourced finding, the specific harness category passing is the proof the fix landed.)
 
-**If there is a new failure:** the fix introduced a regression.
+**If there is a new failure:** the fix introduced a regression (revert flow below).
+
+#### Step 2.3b — Adversarial re-verification (static-review findings)
+
+Harness/pre-commit findings have a real oracle: the check passes or it doesn't. Static-review findings don't — "fixed" means the model that wrote the fix re-read its own code and approved it. That self-grading is one of the two main ways "the AI said it was fixed" turns out false (the other is vacuous tests, Step 2.3c).
+
+So after pre-commit passes, **try to refute the fix** before marking the finding fixed. Full protocol: `references/adversarial-verification.md`. The short version:
+
+- **Where subagents are available** (e.g., Claude Code's Task/Agent tool): spawn an independent verifier with ONLY the original finding text and the file paths — *not* the fix diff, *not* the rationale. Its question is "is this issue present in the current code?" If it finds the issue (same line, another instance, or a variant the fix missed) → the fix is incomplete: treat like "target check still failing" (revert or extend, count a failed attempt).
+- **Where subagents aren't available**: run the structured self-refutation pass from the reference — re-derive the finding from the description alone, then check the four standard escape routes (other instances of the same pattern, cosmetic fix, narrower-than-the-finding fix, adjacent invariant broken).
+
+**Cost discipline:** mandatory for Critical and High static findings; sample at least one per category for Medium; skip for Low/Info. Record the verdict in the log entry: `re-verified: adversarial (independent) — no refutation` or `re-verified: self-refutation pass`.
+
+#### Step 2.3c — Prove the test can fail (when a fix adds or leans on a test)
+
+A test written alongside a fix, by the same model, frequently passes for the wrong reason — it asserts too little, mocks away the behavior under test, or tests the fix's implementation rather than the finding's behavior. A green test only counts as evidence if it's red when the bug is present.
+
+When the fix added/modified a test, or the finding's "fixed" status rests on a test as its oracle:
+
+1. Temporarily restore the buggy behavior (reverse-apply the *non-test* part of the fix; mechanics in `references/adversarial-verification.md`).
+2. Run the test. **Expect FAIL.**
+3. Restore the fix; run the test again. Expect PASS.
+4. If step 2 *passed* with the bug present → the test is vacuous. The finding stays open; fix the test first, then redo this step.
+
+Record in the log: `test-oracle proven: red-green verified` or `test-oracle NOT proven: <why> — finding remains open`.
 
 1. **Revert the fix** (`git checkout` or `git restore` on the changed files)
 2. **Run pre-commit again** to confirm the baseline is restored
@@ -251,6 +276,8 @@ If the refresh surfaces new warnings (especially high-severity ones), flag them 
 ### Phase 4 — Re-run app-audit on the full original scope
 
 Re-run app-audit on the **full original scope** — the same categories as the round that produced these findings. Not just touched files, not just touched categories. The full original scope.
+
+The re-audit also spot-checks `fixed` statuses: any Critical finding closed with only `re-verified: self-refutation pass` (no independent verifier was available) gets re-checked first.
 
 The reason: regressions can land outside the directly-touched files (a refactor of a shared helper can break callers in unrelated categories). Limiting Phase 4 to "touched categories" produces a faster pass that misses the very cross-category regressions per-fix verification can't catch on its own.
 
@@ -335,6 +362,7 @@ build code
 
 - `references/fix-ordering.md` — the safety-priority algorithm with worked examples, edge cases, and tiebreaks. Read this when planning the order in Phase 1.
 - `references/per-fix-verification.md` — what pre-commit must do for each fix, how to detect partial vs total failure, revert mechanics. Read this when implementing Phase 2.
+- `references/adversarial-verification.md` — the independent-refutation protocol for static findings (with and without subagents) and the red-green proof for test oracles. Read this when executing Steps 2.3b / 2.3c.
 - `references/regression-detection.md` — how Phase 4 distinguishes "new finding caused by this fix" from "finding that was always there but got surfaced." Read this when interpreting Phase 4 results.
 
 ## Output discipline

@@ -2,7 +2,7 @@
 # Selran DevLoop — friendly installer.
 #
 # Lets the user pick exactly what they want:
-#   - one or more of the four methodology skills (standalone), OR
+#   - one or more of the five methodology skills (standalone), OR
 #   - the full DevLoop engine (skills + the autonomous run loop driver).
 #
 # Skills are copied to ~/.claude/skills/ (where Claude Code loads them from).
@@ -10,10 +10,10 @@
 #
 # Usage:
 #   ./install.sh                  # interactive picker (default)
-#   ./install.sh --all            # install all 4 skills, non-interactive
+#   ./install.sh --all            # install all 5 skills, non-interactive
 #   ./install.sh --devloop        # install full engine, non-interactive
 #   ./install.sh --skill <name>   # install one skill by name, non-interactive
-#                                 # (cartographer | pre-commit-verification | app-audit | audit-fix)
+#                                 # (cartographer | pre-commit-verification | spec-bootstrap | app-audit | audit-fix)
 #   ./install.sh -h | --help      # show this menu without installing
 
 set -euo pipefail
@@ -49,9 +49,10 @@ install_skill() {
 }
 
 install_all_skills() {
-  bold "Installing the 4 methodology skills..."
+  bold "Installing the 5 methodology skills..."
   install_skill cartographer
   install_skill pre-commit-verification
+  install_skill spec-bootstrap
   install_skill app-audit
   install_skill audit-fix
 }
@@ -134,19 +135,26 @@ Pick what to install. Each option explains what you get.
        provider mocks, env probe). Catches "all tests pass but the app fails
        when actually launched."
 
-  3) app-audit (skill — bundles cartographer + pre-commit-verification)
+  3) spec-bootstrap (skill, standalone)
+       Reconstructs a design spec for an app that never had one: derives
+       observed behavior from the code, interviews you to separate intent
+       from accident, writes a provenance-marked SPEC.md app-audit can use.
+
+  4) app-audit (skill — bundles cartographer + pre-commit-verification + spec-bootstrap)
        Convergent codebase audit: schema, security, concurrency, resource
-       bounds, spec compliance, ops, test coverage. Folds pre-commit + smoke
-       results into a persistent AUDIT_LOG.md so audits converge across rounds.
+       bounds, spec compliance, ops, test coverage with acceptance mapping,
+       diagnosability. Folds pre-commit + smoke results into a persistent
+       AUDIT_LOG.md so audits converge across rounds.
 
-  4) audit-fix (skill — bundles cartographer + pre-commit-verification + app-audit)
-       Applies fixes for findings from app-audit safely: per-fix verification,
-       revert-on-fail, blast-radius-aware ordering via cartographer's call graph.
+  5) audit-fix (skill — bundles all of the above)
+       Applies fixes for findings from app-audit safely: per-fix verification
+       vs. baseline, adversarial re-verification, revert-on-fail,
+       blast-radius-aware ordering via cartographer's call graph.
 
-  A) ALL four skills (recommended for methodology-only use)
+  A) ALL five skills (recommended for methodology-only use)
 
   D) Full DevLoop engine (autonomous run loop)
-       Installs the 4 skills above + the `autoloop` runner. Cuts an isolated
+       Installs the 5 skills above + the `autoloop` runner. Cuts an isolated
        worktree branch, runs cartographer → app-audit → audit-fix → re-audit
        until green, then opens a reviewable PR. Your base branch is never
        touched. Verifies Python / Agent SDK / gh / API key.
@@ -191,21 +199,24 @@ main() {
   esac
 
   show_menu
-  read -rp "Your choice [1/2/3/4/A/D/q]: " choice
+  read -rp "Your choice [1/2/3/4/5/A/D/q]: " choice
   echo
   case "$choice" in
     1) bold "Installing cartographer..."; install_skill cartographer ;;
     2) bold "Installing pre-commit-verification..."; install_skill pre-commit-verification ;;
-    3)
+    3) bold "Installing spec-bootstrap..."; install_skill spec-bootstrap ;;
+    4)
       bold "Installing app-audit (with its dependencies)..."
       install_skill cartographer
       install_skill pre-commit-verification
+      install_skill spec-bootstrap
       install_skill app-audit
       ;;
-    4)
+    5)
       bold "Installing audit-fix (with its dependencies)..."
       install_skill cartographer
       install_skill pre-commit-verification
+      install_skill spec-bootstrap
       install_skill app-audit
       install_skill audit-fix
       ;;

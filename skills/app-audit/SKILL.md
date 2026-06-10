@@ -1,7 +1,7 @@
 ---
 name: app-audit
-version: 0.6.0
-description: Run a rigorous, repeatable, convergent audit of a codebase covering schema integrity, data flow, security, concurrency, resource bounds, spec compliance, operational readiness, and test coverage. Use whenever the user asks to audit, review, QA, verify, or validate a codebase — especially before a release or after a major refactor. Consumes cartographer's codemap for targeted retrieval; produces a persistent AUDIT_LOG.md so audits converge across rounds. Pre-commit-verification first for a clean baseline; hands off to audit-fix at the end.
+version: 0.7.0
+description: Run a rigorous, repeatable, convergent audit of a codebase covering schema integrity, data flow, security, concurrency, resource bounds, spec compliance, operational readiness, test coverage with spec→acceptance-test mapping, and diagnosability. Use whenever the user asks to audit, review, QA, verify, or validate a codebase — especially before a release or after a major refactor. Consumes cartographer's codemap for targeted retrieval; produces a persistent AUDIT_LOG.md so audits converge across rounds. Pre-commit-verification first for a clean baseline; invokes spec-bootstrap when no design spec exists; hands off to audit-fix at the end.
 ---
 
 # App Audit
@@ -264,6 +264,7 @@ Check the repo root for:
 - `AUDIT_CHECKLIST.md` — categories and items checked during an audit
 - `AUDIT_LOG.md` — durable history of past audit rounds and their findings
 - A design spec (`DESIGN_SPEC.md`, `design.md`, `architecture.md`, project-specific filename) — the source of truth the checklist should derive from
+- `.audit/acceptance-map.md` — the spec→acceptance-test mapping (Category 9; see `references/acceptance-mapping.md`)
 - Pre-commit hooks (`.pre-commit-config.yaml`, `scripts/pre-commit.sh`, `.husky/`, etc.)
 
 **Tell the user what was found and what's missing.** Be explicit:
@@ -282,6 +283,16 @@ Tell the user the dividing line explicitly:
 
 ### Step 1.3 — Generate or refresh the checklist
 
+**If no design spec exists at all, invoke the `spec-bootstrap` skill first.** A checklist generated from nothing is a generic lint pass, and "unspecified intent" is one of the deepest sources of residual errors. spec-bootstrap derives observed behavior from the code, interviews the user to separate intent from accident, and produces a §-numbered, provenance-marked spec; resume here after its sign-off. Two degraded paths:
+- User declines the interview → proceed against spec-bootstrap's unconfirmed draft; provenance rules below govern grading.
+- Headless run (no user available) → spec-bootstrap produces the draft without an interview; same rules.
+
+**Provenance-aware grading for bootstrapped specs.** Statements carry `[confirmed]` / `[observed]` / `[assumed]` markers:
+- `[confirmed]` violations → normal findings at normal severity.
+- `[observed]` violations → normal findings, with a note that the baseline is observed behavior, not confirmed intent.
+- `[assumed]` violations → **questions, not findings** (Phase 3.6 treatment). Flagging violations of guesses produces noise, and noise erodes trust in the audit.
+Also pick up spec-bootstrap's "Known deviations" section — those are pre-seeded findings with user confirmation as evidence; carry them into this round.
+
 If `AUDIT_CHECKLIST.md` doesn't exist, **generate it from the design spec.** Read the spec and extract every:
 - `must`, `must not`, `never`, `always`
 - Named invariant ("messages attach to X, not Y")
@@ -293,6 +304,12 @@ If `AUDIT_CHECKLIST.md` doesn't exist, **generate it from the design spec.** Rea
 Each becomes a checklist item. Group by category — see `references/checklist-categories.md` for the standard category set.
 
 If the checklist exists but the spec has been updated since, **offer to refresh it** before auditing.
+
+### Step 1.3b — Generate or refresh the acceptance map
+
+If `.audit/acceptance-map.md` doesn't exist (and the repo has user-facing surfaces), generate it: extract the spec's **user-facing** musts and map each to the test that exercises it, per `references/acceptance-mapping.md`. Propose test matches by searching test names/descriptions — a match must assert the promise, not merely touch the feature. Rows with no asserting test are marked `UNMAPPED`; Category 9 grades them during Phase 3 (High for data-loss/security/privacy promises, Medium otherwise).
+
+If the map exists but the spec version changed, regenerate it (keep the old one as `acceptance-map.<old-version>.md` for one cycle).
 
 ### Step 1.4 — Read the audit log
 
@@ -656,7 +673,8 @@ Setup details, launch instructions, the Streamlit script, and the `run_state.jso
 
 ## Reference files
 
-- `references/checklist-categories.md` — the standard category set with representative items, including test coverage. Read in Phase 1.3 when generating a checklist from a spec.
+- `references/checklist-categories.md` — the standard ten-category set with representative items, including test coverage (with acceptance mapping) and diagnosability. Read in Phase 1.3 when generating a checklist from a spec.
+- `references/acceptance-mapping.md` — the `.audit/acceptance-map.md` format, lifecycle, and grading rules for the spec→test mapping. Read in Phase 1.3b and when verifying Category 9.
 - `references/audit-log-template.md` — the format for AUDIT_LOG.md and AUDIT_CHECKLIST.md. Read in Phase 1.1 when creating these files for the first time.
 - `references/severity-examples.md` — concrete examples of Critical / High / Medium / Low for common finding types. Consult when uncertain about severity grading.
 - `references/live-panel-streamlit.md` — Streamlit panel template and `run_state.json` schema for live audit visibility. Optional; read this when launching the panel or writing the text-mode fallback.

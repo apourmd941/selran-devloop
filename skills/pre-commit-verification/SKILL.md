@@ -1,6 +1,6 @@
 ---
 name: pre-commit-verification
-version: 0.6.0
+version: 0.7.0
 description: Use this skill whenever the user asks to verify, test, check, validate, or confirm their repo before committing or pushing — including requests like "do a pre commit verification", "run local tests before push", "deep local verification", "fix everything and test it", "make sure this is ready", or "run the full verification pass". Covers stack-aware test discovery, unit/integration/e2e tests, smoke tests, lint checks, type checks, builds, and a runtime smoke/integration harness (binary-launch, migration idempotency, provider mocks, headless webview, env probe) for desktop apps. Do NOT use for a single narrow test unless explicitly requested.
 ---
 
@@ -41,6 +41,7 @@ Inspect the repo and include the applicable categories:
 - unit tests
 - integration tests
 - end-to-end tests when practical locally
+- acceptance tests mapped in `.audit/acceptance-map.md` when it exists (the spec→test mapping app-audit maintains) — run the mapped tests and report `acceptance: N mapped, M run, K UNMAPPED`; grading the gaps is app-audit's job, running the tests is this skill's
 - smoke tests (and the runtime harness below)
 - lint checks
 - type checks
@@ -179,6 +180,7 @@ Existing checks:
 - typecheck: <cmd> → clean | <issues>
 - build: <cmd> → success | failure
 - format: <cmd> → clean | <issues>
+- acceptance (when .audit/acceptance-map.md exists): <N mapped, M run, K UNMAPPED> → <passed/failed>
 
 Smoke/integration harness:
 - [1+4] HTTP health smoke      → PASS | FAIL: <detail> | SKIPPED: <why>
@@ -214,6 +216,7 @@ Do not treat generated files as meaningful product changes unless the repo inten
 
 - Do not revert unrelated user changes.
 - Prefer fixing the real issue instead of weakening or skipping tests — including harness tests. A harness test that's flaky should be made deterministic, not deleted.
+- **Any NEW test written during this pass must be proven able to fail** before it counts as verification: break the asserted behavior once (or run against the pre-fix state), watch the test go red, restore. A test that passes regardless is false confidence, not coverage. (Full red-green protocol: audit-fix's `references/adversarial-verification.md`.)
 - Match the repo's actual conventions instead of forcing a repo-specific workflow everywhere.
 - Never scaffold the harness into a repo that already has it; treat the project's copies as authoritative.
 - Treat this as pre-commit local verification first; commit, push, and GitHub monitoring come after this unless the user explicitly asks for the whole chain.
