@@ -1,0 +1,24 @@
+{
+  "name": "selran",
+  "owner": {
+    "name": "Aidin Eslampour",
+    "email": "aidin.eslampour@selran.ai",
+    "url": "https://github.com/apourmd941"
+  },
+  "description": "Selran plugins — developer methodology tools by Selran. Flagship: Greenloop, the convergent audit/fix loop that runs until green.",
+  "plugins": [
+    {
+      "name": "greenloop",
+      "source": "./",
+      "description": "Selran Greenloop — five skills that drive a codebase to convergence: codemap (cartographer), runtime-aware verification (pre-commit-verification), spec reconstruction with intent interview (spec-bootstrap), ten-category convergent audit (app-audit), and baseline-aware remediation with adversarial re-verification (audit-fix). Free for personal, non-commercial use.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Aidin Eslampour",
+        "url": "https://github.com/apourmd941"
+      },
+      "license": "SEE LICENSE IN LICENSE",
+      "category": "development",
+      "keywords": ["audit", "verification", "code-review", "methodology", "selran"]
+    }
+  ]
+}

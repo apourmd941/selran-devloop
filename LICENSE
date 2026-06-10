@@ -1,0 +1,66 @@
+Selran Personal Use License v1.0
+
+Copyright (c) 2026 Selran. Author: Aidin Eslampour. All rights reserved.
+
+This license applies to Selran Greenloop (the "Work"): the methodology
+skills, reference documents, templates, scripts, driver code, and all
+other contents of this repository.
+
+1. GRANT
+
+Subject to the terms below, you are granted a free, worldwide,
+non-exclusive, non-transferable license to:
+
+  a. install and use the Work for PERSONAL, NON-COMMERCIAL purposes;
+
+  b. modify the Work's templates, configuration, and per-project files
+     for your own use (e.g., customizing the codemap build script,
+     smoke-harness templates, or audit checklists for your own
+     projects);
+
+  c. obtain the Work through its official distribution channels: this
+     repository, and any Claude plugin marketplace or skill directory
+     entry that points directly back to this repository.
+
+2. RESTRICTIONS
+
+The following require prior written permission from the copyright
+holder:
+
+  a. COMMERCIAL USE — using the Work in, or for the benefit of, any
+     business, commercial product, paid service, client deliverable,
+     or other revenue-generating activity;
+
+  b. REDISTRIBUTION — republishing, mirroring, rehosting, sublicensing,
+     selling, or otherwise distributing the Work or substantial
+     portions of it, in original or modified form, outside the official
+     channels named in 1(c);
+
+  c. REBRANDING — presenting the Work or derivatives of it as your own
+     work, or removing or altering attribution, copyright, or license
+     notices.
+
+3. ATTRIBUTION
+
+All permitted copies must retain this license file and the notice:
+"Selran Greenloop — (c) Selran, Aidin Eslampour".
+
+4. NO WARRANTY
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHOR OR COPYRIGHT HOLDER BE
+LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF,
+OR IN CONNECTION WITH THE WORK OR ITS USE.
+
+5. TERMINATION
+
+This license terminates automatically if you breach any of its terms.
+Upon termination you must cease use and destroy all copies in your
+possession.
+
+6. COMMERCIAL LICENSING
+
+For commercial use, redistribution, or any permission beyond this
+grant, contact: aidin.eslampour@selran.ai

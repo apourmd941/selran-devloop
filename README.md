@@ -1,9 +1,19 @@
-# Selran DevLoop
+# Selran Greenloop
 
-An autonomous, repeatable dev-loop for any of the Selran apps. Point it at a repo;
-it runs **cartographer → app-audit → audit-fix** in a loop inside a disposable
-Linux sandbox until the oracles are green, then hands back reviewable commits as a
-pull request.
+**The loop that runs until green.** By [Selran](https://github.com/apourmd941) —
+written and maintained by **Aidin Eslampour**.
+
+An autonomous, repeatable dev-loop for any codebase. Point it at a repo; it runs
+**cartographer → app-audit → audit-fix** in a loop until the oracles are green —
+no residual errors in the audited categories — then hands back reviewable commits.
+Born from a simple frustration: AI-assisted builds where "done" was claimed but
+errors always remained. Greenloop is the methodology that makes "done" checkable.
+
+> Free for personal, non-commercial use. No redistribution or commercial use
+> without permission — see [LICENSE](LICENSE).
+
+(The engine's internal name remains `devloop` — config dir `.devloop/`, driver
+`devloop.py`, CLI `autoloop`. Greenloop is the product; devloop is the plumbing.)
 
 ## What this is (and isn't)
 
@@ -27,7 +37,22 @@ five, which is what kills the version drift we used to hit.
 | app-audit | 0.7.0 | Convergent audit (10 categories incl. acceptance mapping + diagnosability) |
 | audit-fix | 0.7.0 | Fixes findings safely (baseline-aware verify, adversarial re-verification) |
 
-## Installing — pick what you want
+## Installing
+
+### As a Claude Code plugin (recommended for sharing)
+
+This repo is a Claude plugin marketplace. Anyone can install Greenloop with two
+commands inside Claude Code:
+
+```
+/plugin marketplace add apourmd941/selran-devloop
+/plugin install greenloop@selran
+```
+
+That loads all five skills (namespaced as `greenloop:cartographer`, etc.) and
+keeps them updatable via `/plugin marketplace update selran`.
+
+### With the interactive installer (local copy)
 
 One interactive installer explains each option and copies what you pick to
 `~/.claude/skills/`:
@@ -111,3 +136,12 @@ Phase 1's container runtime). See `sandbox/PHASE{1..5}-FINDINGS.md` and
 - Never put real secrets in the sandbox — throwaway/file-based keys only.
 - Per-fix verification + revert-on-failure (audit-fix enforces this).
 - Human review gate: the loop opens a PR; you merge. Nothing auto-touches main.
+
+## Attribution & license
+
+Selran Greenloop — © 2026 Selran. Created and written by **Aidin Eslampour**.
+
+Free for **personal, non-commercial use**. Commercial use, redistribution outside
+the official channels (this repository and marketplace entries pointing to it),
+and rebranding require written permission — see [LICENSE](LICENSE). For commercial
+licensing: aidin.eslampour@selran.ai.

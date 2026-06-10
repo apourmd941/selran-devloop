@@ -1,7 +1,7 @@
 ---
 name: cartographer
 version: 0.5.0
-description: Build and maintain a persistent codemap (.codemap/*.json — structure, dependencies, functions, warnings) of any codebase. Function-level extraction runs in four stages: tags, spec_refs, qualified names + git blame default-on; call graph opt-in. Use whenever the user asks to build, refresh, or rebuild the codemap; to map the code; to find duplicate, stale, or unused files; or as part of an audit (app-audit Phase 0.5). Incremental refresh after the first full build. Works on any language.
+description: Build and maintain a persistent codemap (.codemap/*.json — structure, dependencies, functions, warnings) of any codebase. Function-level extraction runs in four stages — tags, spec_refs, qualified names + git blame default-on; call graph opt-in. Use whenever the user asks to build, refresh, or rebuild the codemap; to map the code; to find duplicate, stale, or unused files; or as part of an audit (app-audit Phase 0.5). Incremental refresh after the first full build. Works on any language.
 ---
 
 # Cartographer
