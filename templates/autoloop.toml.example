@@ -1,0 +1,53 @@
+# Selran DevLoop per-repo config.
+# Copy to <target-repo>/.devloop/autoloop.toml and customize for that app.
+# This is the ONLY file that changes per repo — everything else is in the image.
+
+[repo]
+name = "your-rust-app"
+default_branch = "main"
+
+[build]
+# commands run inside the sandbox to build the target
+backend  = "cargo build -p backend-rs"
+frontend = "cd frontend && npm ci && npm run build"
+
+[launch]
+# how the sandbox launches the app for smoke tests
+backend_cmd    = "cargo run -p backend-rs"
+health_url     = "http://127.0.0.1:8765/api/health"   # CUSTOMIZE
+webview_origin = "tauri://localhost"                  # CUSTOMIZE
+
+[db]
+# throwaway database for the sandbox — NEVER a real one
+url         = "postgres://localhost/devloop_test"
+migrate_cmd = "sqlx migrate run"
+
+[harness]
+# which smoke/integration categories apply to this repo
+# 1+4 http-health | 2 dev/prod | 3 migrations | 5 webview | 7 env | 8 providers | 9 onboarding
+categories = ["1+4", "3", "5", "7", "8", "9"]
+
+[secrets]
+# NEVER real secrets. File-based throwaway key so selran-crypto's Linux path has
+# something to use without touching a real keychain.
+keystore      = "file"
+keystore_path = "/tmp/devloop-keys"
+
+[loop]
+max_iterations         = 10
+# COST is the real cap — checked between turns. A full audit+fix+re-audit cycle on
+# a real repo is ~$15-25, and a single turn can overshoot by its own cost (~$3-8),
+# so the effective stop is this cap plus up to one turn. Default leaves headroom
+# for a multi-iteration run; lower it for a cheaper first test.
+max_cost_usd           = 50
+# Secondary safety only. Cache-read tokens inflate the raw count (one real audit
+# turn was ~8M tokens but only $5.81), so keep this high or it trips spuriously.
+max_tokens             = 30000000
+max_wall_clock_minutes = 120
+# Per-TURN cap. The overall caps above are only checked between turns, so they
+# can't stop a single frozen turn. A working audit/fix turn is ~10-20 min; a turn
+# past this is almost always a hung shell command, so it's aborted (loop stops +
+# preserves work instead of freezing).
+max_turn_minutes       = 30
+stuck_fix_alternatives = 2                 # try N alternative fixes, then defer
+never_touch_branches   = ["main", "master"]
