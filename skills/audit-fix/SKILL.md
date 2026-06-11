@@ -1,6 +1,6 @@
 ---
 name: audit-fix
-version: 0.8.0
+version: 0.8.1
 description: Address findings from a completed app-audit run, in safe order, with per-fix verification. Use whenever the user asks to fix the audit findings, address them, work through them, or run audit-fix. Reads AUDIT_LOG.md; uses cartographer's call graph (stage 4) to order fixes by blast radius — pure-local first, large-blast-radius last, critical severity prioritized within each tier. Runs pre-commit-verification after each fix; reverts and stops on failure. Refreshes cartographer and re-runs app-audit on the full original scope when done.
 ---
 
@@ -329,7 +329,7 @@ Recommend a next-step cadence:
 
 ## Live fix progress (Selran Hub panel)
 
-Probe once at Phase 0: `curl -s -m 0.3 http://127.0.0.1:11999/hub/health`. If `"hub":"selran"` with `"audit"` in capabilities, create a run (`POST /v1/audit/runs` with `{"title": "audit-fix — <repo>", "repo": "<repo>"}`), tell the user the URL once, and stream progress to `POST /v1/audit/runs/<id>/events`:
+Probe once at Phase 0: `curl -s -m 0.3 http://127.0.0.1:11999/hub/health`. If `"hub":"selran"` with `"audit"` in capabilities, create a run (`POST /v1/audit/runs` with `{"title": "audit-fix — <repo>", "repo": "<repo>"}`), tell the user the URL once, and stream progress to `POST /v1/audit/runs/<id>/events`. **All Hub POSTs must include the header `X-Selran-Local: 1`** (the Hub refuses mutations without it):
 
 - when the plan is approved: one `{"type":"note","text":"plan: N findings across M tiers"}`
 - after each finding resolves: `{"type":"fix","title":"<finding title>","status":"fixed|deferred|reverted|failed","location":"file:line"}`

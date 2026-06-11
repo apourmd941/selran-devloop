@@ -34,8 +34,8 @@ five, which is what kills the version drift we used to hit.
 | cartographer | 0.5.0 | Maps the codebase (`.codemap/*.json`) |
 | pre-commit-verification | 0.7.0 | Runs tests, acceptance map + the smoke/integration harness |
 | spec-bootstrap | 0.1.0 | Reconstructs a provenance-marked design spec for apps that never had one |
-| app-audit | 0.8.0 | Convergent audit (10 categories; live panel via Selran Hub when present) |
-| audit-fix | 0.8.0 | Fixes findings safely (baseline-aware verify, adversarial re-verification, live fix progress via Hub) |
+| app-audit | 0.8.1 | Convergent audit (10 categories; live panel via Selran Hub when present) |
+| audit-fix | 0.8.1 | Fixes findings safely (baseline-aware verify, adversarial re-verification, live fix progress via Hub) |
 
 ## Installing
 

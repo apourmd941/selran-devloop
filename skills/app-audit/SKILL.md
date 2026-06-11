@@ -1,6 +1,6 @@
 ---
 name: app-audit
-version: 0.8.0
+version: 0.8.1
 description: Run a rigorous, repeatable, convergent audit of a codebase covering schema integrity, data flow, security, concurrency, resource bounds, spec compliance, operational readiness, test coverage with spec→acceptance-test mapping, and diagnosability. Use whenever the user asks to audit, review, QA, verify, or validate a codebase — especially before a release or after a major refactor. Consumes cartographer's codemap for targeted retrieval; produces a persistent AUDIT_LOG.md so audits converge across rounds. Pre-commit-verification first for a clean baseline; invokes spec-bootstrap when no design spec exists; hands off to audit-fix at the end.
 ---
 
@@ -667,7 +667,7 @@ For real-time visibility into a running audit, in preference order:
 
 Probe once at audit start: `curl -s -m 0.3 http://127.0.0.1:11999/hub/health`. If the response has `"hub":"selran"` and `"audit"` in capabilities:
 
-1. Create the run: `POST http://127.0.0.1:11999/v1/audit/runs` with `{"title": "Audit — <repo>", "repo": "<repo>", "scope": ["<categories>"]}` → `{id, url}`. Tell the user the URL **once**: *"Live panel: <url> — findings appear as I record them."* (Open it with the platform opener if the host has a browser.)
+1. Create the run: `POST http://127.0.0.1:11999/v1/audit/runs` with `{"title": "Audit — <repo>", "repo": "<repo>", "scope": ["<categories>"]}` → `{id, url}`. **All Hub POSTs must include the header `X-Selran-Local: 1`** (`curl -H "X-Selran-Local: 1" ...`) — the Hub refuses mutations without it. Tell the user the URL **once**: *"Live panel: <url> — findings appear as I record them."* (Open it with the platform opener if the host has a browser.)
 2. Stream small JSON events to `POST /v1/audit/runs/<id>/events` as the audit progresses — the Hub renders everything; never build dashboard HTML:
    - each phase transition: `{"type":"phase","phase":"Phase 3 — Execute"}`
    - each checklist item (batch ~5 per POST on large scopes): `{"type":"item","category":"3 Security","item":"tokens never logged"}`
