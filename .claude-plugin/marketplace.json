@@ -11,7 +11,7 @@
       "name": "greenloop",
       "source": "./",
       "description": "Selran Greenloop — five skills that drive a codebase to convergence: codemap (cartographer), runtime-aware verification (pre-commit-verification), spec reconstruction with intent interview (spec-bootstrap), ten-category convergent audit (app-audit), and baseline-aware remediation with adversarial re-verification (audit-fix). Free for personal, non-commercial use.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "author": {
         "name": "Aidin Eslampour",
         "url": "https://github.com/apourmd941"

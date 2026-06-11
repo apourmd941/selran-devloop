@@ -1,6 +1,6 @@
 ---
 name: audit-fix
-version: 0.7.0
+version: 0.8.0
 description: Address findings from a completed app-audit run, in safe order, with per-fix verification. Use whenever the user asks to fix the audit findings, address them, work through them, or run audit-fix. Reads AUDIT_LOG.md; uses cartographer's call graph (stage 4) to order fixes by blast radius — pure-local first, large-blast-radius last, critical severity prioritized within each tier. Runs pre-commit-verification after each fix; reverts and stops on failure. Refreshes cartographer and re-runs app-audit on the full original scope when done.
 ---
 
@@ -326,6 +326,16 @@ Recommend a next-step cadence:
 - If everything cleared: "Recommend running audit again in 1–2 weeks or after the next major feature."
 - If new findings surfaced: "Recommend a follow-up audit-fix pass on the new findings."
 - If many findings deferred: "Recommend addressing deferred items before next audit."
+
+## Live fix progress (Selran Hub panel)
+
+Probe once at Phase 0: `curl -s -m 0.3 http://127.0.0.1:11999/hub/health`. If `"hub":"selran"` with `"audit"` in capabilities, create a run (`POST /v1/audit/runs` with `{"title": "audit-fix — <repo>", "repo": "<repo>"}`), tell the user the URL once, and stream progress to `POST /v1/audit/runs/<id>/events`:
+
+- when the plan is approved: one `{"type":"note","text":"plan: N findings across M tiers"}`
+- after each finding resolves: `{"type":"fix","title":"<finding title>","status":"fixed|deferred|reverted|failed","location":"file:line"}`
+- at close: `{"type":"complete","summary":"<X fixed, Y deferred>"}`
+
+Posting failures are silently ignored — the panel never blocks the fix loop. Hub absent → skip silently (the once-per-session mention rule belongs to app-audit; don't double-mention).
 
 ## Non-interactive mode (driver / headless invocation)
 
