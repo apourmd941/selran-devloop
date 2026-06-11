@@ -33,7 +33,7 @@
         "url": "https://github.com/apourmd941/selran-design-director"
       },
       "description": "Selran Design Director — direct high-quality visual work from Claude: pick one of seven rendered design directions, get a portable design-system.md, and have it enforced across websites, apps, native mobile, documents, and decks — dark mode, accessibility audits, i18n, performance budgets — while generic AI-slop defaults are blocked. MIT core; independently licensed add-on packs.",
-      "version": "3.6.1",
+      "version": "3.7.0",
       "author": {
         "name": "Aidin Eslampour",
         "url": "https://github.com/apourmd941"
