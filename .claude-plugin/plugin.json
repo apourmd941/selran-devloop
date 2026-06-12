@@ -1,7 +1,7 @@
 {
   "name": "greenloop",
-  "description": "Selran Greenloop — the loop that runs until green. Five methodology skills (cartographer, pre-commit-verification, spec-bootstrap, app-audit, audit-fix) that drive any codebase to convergence: map it, reconstruct its spec, audit it against ten categories, fix findings with adversarial re-verification, and repeat until no residual errors remain.",
-  "version": "1.1.1",
+  "description": "Selran Greenloop — the loop that runs until green. Point it at any codebase and it maps the architecture, reconstructs the spec, audits against ten quality categories, fixes what it finds, and adversarially re-verifies — repeating until nothing is left to fix. Five skills: cartographer, spec-bootstrap, pre-commit-verification, app-audit, audit-fix. Free for personal, non-commercial use.",
+  "version": "1.1.2",
   "author": {
     "name": "Aidin Eslampour",
     "email": "aidin.eslampour@selran.ai",
