@@ -1,0 +1,12 @@
+{
+  "fixture": "axum-cors-permissive",
+  "language": "rust",
+  "pack": "axum",
+  "seeded": [
+    {"id": "ACORS-1", "file": "server.rs", "line": 8, "category": 3, "severity": "high", "class": "cors-permissive",
+     "hint": "CorsLayer::permissive() on an API router"}
+  ],
+  "clean_zones": [
+    {"file": "server.rs", "lines": [11, 16], "reason": "explicit allow_origin — flagging this is a false positive"}
+  ]
+}

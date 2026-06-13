@@ -1,0 +1,54 @@
+{
+  "name": "selran",
+  "owner": {
+    "name": "Aidin Eslampour",
+    "email": "aidin.eslampour@selran.ai",
+    "url": "https://github.com/apourmd941"
+  },
+  "description": "Selran plugins \u2014 developer methodology and design tools by Selran. Greenloop: the convergent audit/fix loop that runs until green. Design Director: high-quality visual work with AI-slop blocked.",
+  "plugins": [
+    {
+      "name": "greenloop",
+      "source": "./",
+      "description": "Selran Greenloop \u2014 the loop that runs until green. Point it at any codebase and it maps the architecture, reconstructs the spec, audits against ten quality categories, fixes what it finds, and adversarially re-verifies \u2014 repeating until nothing is left to fix. Five skills: cartographer, spec-bootstrap, pre-commit-verification, app-audit, audit-fix. Free for personal, non-commercial use.",
+      "version": "1.17.0",
+      "author": {
+        "name": "Aidin Eslampour",
+        "url": "https://github.com/apourmd941"
+      },
+      "license": "SEE LICENSE IN LICENSE",
+      "category": "development",
+      "keywords": [
+        "audit",
+        "verification",
+        "code-review",
+        "methodology",
+        "selran"
+      ]
+    },
+    {
+      "name": "design-director",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/apourmd941/selran-design-director"
+      },
+      "description": "Selran Design Director \u2014 stop shipping the default AI look. Pick from seven rendered design directions, get a portable design-system.md, and have it enforced on everything Claude builds \u2014 websites, apps, native mobile, documents, decks \u2014 with dark mode, accessibility audits, i18n, and performance budgets built in. MIT core; independently licensed add-on packs.",
+      "version": "3.16.1",
+      "author": {
+        "name": "Aidin Eslampour",
+        "url": "https://github.com/apourmd941"
+      },
+      "license": "MIT",
+      "category": "design",
+      "keywords": [
+        "design",
+        "design-system",
+        "branding",
+        "ui",
+        "frontend",
+        "accessibility",
+        "selran"
+      ]
+    }
+  ]
+}

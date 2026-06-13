@@ -1,0 +1,9 @@
+name: axum
+description: axum/tower framework depth — permissive CORS on API routers
+activates_on:
+  - "Cargo.toml dependencies contain: axum"
+contents:
+  rules: rules/axum.yml
+  checklist: checklist.md
+proof_fixtures: [axum-cors-permissive]
+provenance: codified from a real greenloop shakedown finding (2026-06-12, blind-challenge CONFIRMED High)

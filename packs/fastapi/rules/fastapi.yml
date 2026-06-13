@@ -1,0 +1,24 @@
+# fastapi pack — high-signal rules (offline)
+rules:
+  - id: fastapi-cors-wildcard-with-credentials
+    languages: [python]
+    severity: ERROR
+    message: >-
+      CORSMiddleware with allow_origins=["*"] AND allow_credentials=True.
+      Browsers refuse wildcard+credentials, so this either silently breaks the
+      client or pushes someone to "fix" it by echoing Origin — which opens
+      credentialed cross-origin access from any site. List explicit origins.
+    metadata: {category: security, cwe: "CWE-942: Permissive CORS", greenloop-category: 3, pack: fastapi}
+    patterns:
+      - pattern: $APP.add_middleware(CORSMiddleware, ..., allow_origins=["*"], ..., allow_credentials=True, ...)
+  - id: fastapi-pickle-on-request-data
+    languages: [python]
+    severity: ERROR
+    message: >-
+      pickle.loads on request-derived bytes executes arbitrary code on
+      deserialization. Use a safe format (JSON, msgpack) for client data.
+    metadata: {category: security, cwe: "CWE-502: Deserialization", greenloop-category: 3, pack: fastapi}
+    patterns:
+      - pattern-either:
+          - pattern: pickle.loads(await $REQ.body())
+          - pattern: pickle.loads($REQ.body())

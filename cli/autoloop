@@ -1,0 +1,262 @@
+#!/usr/bin/env bash
+# autoloop — Selran DevLoop run wrapper + PR gate (Phase 4).
+#
+# `autoloop run <repo>` does the whole end-to-end flow:
+#   1. preflight (git repo, remote, gh auth, API key / runtime)
+#   2. cut an isolated worktree branch off the base branch
+#   3. run the loop on that branch — three modes:
+#        --dry-run : driver stub on the worktree (no API spend, no commits) — for
+#                    verifying the plumbing.
+#        --host    : LIVE loop on this machine. Claude Code runs as you (non-root),
+#                    the git worktree works natively. Less isolated, but it WORKS
+#                    today. Recommended live mode.
+#        (default) : LIVE loop in the sandbox container. EXPERIMENTAL — Claude Code
+#                    refuses to run as root with skip-permissions, and a bind-mounted
+#                    git worktree's linkage breaks in the container. Needs a non-root
+#                    container user + git-linkage rework before it works. Use --host.
+#   4. push the branch to origin (only if commits were produced)
+#   5. open a PR with a run report (stop reason, findings delta, commits, budget)
+#
+# The PR is the review gate: you review the diff + report and merge. autoloop
+# never pushes to or merges the base branch.
+#
+# Usage:
+#   autoloop run <repo> [--base <branch>] [--host] [--dry-run]
+#   autoloop --help
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEVLOOP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SANDBOX_DIR="$DEVLOOP_ROOT/sandbox"
+DRIVER="$DEVLOOP_ROOT/driver/devloop.py"
+IMAGE="selran-devloop:latest"
+
+die() { echo "autoloop: $*" >&2; exit 1; }
+note() { echo "[autoloop] $*"; }
+
+usage() {
+  sed -n '2,30p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+}
+
+# --------------------------------------------------------------------------- #
+run() {
+  local repo="" base="" scope="" dry=0 host=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --dry-run) dry=1; shift ;;
+      --host) host=1; shift ;;
+      --base) base="$2"; shift 2 ;;
+      --scope) scope="$2"; shift 2 ;;
+      -*) die "unknown flag: $1" ;;
+      *) repo="$1"; shift ;;
+    esac
+  done
+  [[ -n "$repo" ]] || die "usage: autoloop run <repo> [--base B] [--host] [--dry-run]"
+  repo="$(cd "$repo" 2>/dev/null && pwd)" || die "repo not found"
+  git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || die "not a git repo: $repo"
+
+  # ---- preflight -----------------------------------------------------------
+  local origin; origin="$(git -C "$repo" remote get-url origin 2>/dev/null || true)"
+  [[ -n "$origin" ]] || die "repo has no 'origin' remote — needed to push the branch + open a PR"
+  [[ -z "$base" ]] && base="$(git -C "$repo" rev-parse --abbrev-ref HEAD)"
+  command -v gh >/dev/null 2>&1 || { [[ $dry -eq 1 ]] && note "gh not found (ok for --dry-run)" || die "gh CLI required to open the PR"; }
+  if [[ $dry -eq 0 ]]; then
+    [[ -n "${ANTHROPIC_API_KEY:-}" ]] || die "ANTHROPIC_API_KEY must be set for a live run (the driver authenticates Claude Code through it)"
+    if [[ $host -eq 1 ]]; then
+      command -v python3 >/dev/null 2>&1 || die "python3 required for --host mode"
+      python3 -c "import claude_agent_sdk" 2>/dev/null \
+        || die "--host mode needs the Agent SDK on this machine: pip install claude-agent-sdk"
+    else
+      command -v docker >/dev/null 2>&1 \
+        || die "container runtime required for a sandboxed live run (or use --host to run on this machine)"
+    fi
+  fi
+
+  local ts branch wt
+  ts="$(date +%Y%m%d-%H%M%S)"
+  branch="claude/autoloop-$ts"
+  wt="$(mktemp -d)/wt"
+  note "repo=$repo base=$base branch=$branch dry_run=$dry host=$host"
+
+  # ---- cut an isolated worktree branch ------------------------------------
+  git -C "$repo" worktree add -q -b "$branch" "$wt" "$base" \
+    || die "failed to create worktree branch from $base"
+
+  # The worktree is the committed tip of $base, so an UNTRACKED .devloop/autoloop.toml
+  # in the source repo isn't present and the driver would silently fall back to its
+  # built-in defaults. If the branch doesn't already carry a config, copy the source
+  # repo's in so the per-repo settings actually apply. (Lives inside the worktree so
+  # both host mode and the bind-mounted container see it; it'll show up in the PR,
+  # which doubles as committing the onboarding file.)
+  if [[ ! -f "$wt/.devloop/autoloop.toml" && -f "$repo/.devloop/autoloop.toml" ]]; then
+    mkdir -p "$wt/.devloop"
+    cp "$repo/.devloop/autoloop.toml" "$wt/.devloop/autoloop.toml"
+    note "applied untracked per-repo config from $repo/.devloop/autoloop.toml"
+  fi
+
+  local rc=0
+  if [[ $dry -eq 1 ]]; then
+    note "dry-run: running the driver against the worktree (no container, no API)"
+    python3 "$DRIVER" --repo "$wt" --config "$wt/.devloop/autoloop.toml" --dry-run || rc=$?
+  elif [[ $host -eq 1 ]]; then
+    # Host mode: run the live loop directly on the worktree. Claude Code runs as
+    # the current (non-root) user — satisfying its root guard — and the git
+    # worktree works natively. Less isolated than the container; fine for your
+    # own machine + repo, on a throwaway branch + PR.
+    note "host mode: running the LIVE loop on the worktree (Claude Code runs as you, not root)"
+    python3 "$DRIVER" --repo "$wt" --config "$wt/.devloop/autoloop.toml" || rc=$?
+  else
+    run_live_loop "$wt" || rc=$?
+  fi
+
+  # ---- preserve any uncommitted run output --------------------------------
+  # audit-fix commits each *code fix* itself, but the codemap refresh + AUDIT_LOG
+  # findings are run artifacts it leaves uncommitted. A budget- or stuck-stopped
+  # run (or an audit-only run that found issues but applied no fixes) would then
+  # have ZERO commits → no PR → the findings are lost when the worktree is
+  # deleted. Bundle whatever's left into one commit so the run is always
+  # reviewable. Live only: dry-run must stay commit-free so its branch is cleaned.
+  if [[ $dry -eq 0 && -n "$(git -C "$wt" status --porcelain)" ]]; then
+    git -C "$wt" add -A
+    git -C "$wt" -c user.email=devloop@local -c user.name="DevLoop" \
+      commit -q -m "devloop: audit log + codemap refresh (run artifacts)" \
+      && note "preserved uncommitted run output (AUDIT_LOG + codemap) as a commit"
+  fi
+
+  # ---- assemble the run report --------------------------------------------
+  local report="$wt/.devloop/last-run.json"
+  local commits; commits="$(git -C "$wt" log --oneline "$base..$branch" 2>/dev/null || true)"
+  local body; body="$(build_pr_body "$report" "$base" "$branch" "$commits")"
+
+  if [[ $dry -eq 1 ]]; then
+    note "dry-run: PR that WOULD be opened (not pushing, not calling gh):"
+    echo "----------------------------------------------------------------"
+    echo "branch: $branch  →  base: $base"
+    echo "$body"
+    echo "----------------------------------------------------------------"
+    cleanup_run "$repo" "$base" "$branch" "$wt"
+    note "dry-run complete (worktree + empty branch cleaned up)."
+    return "$rc"
+  fi
+
+  # ---- push + open PR ------------------------------------------------------
+  if [[ -z "$commits" ]]; then
+    note "no commits produced (nothing to fix, or stuck before any fix) — not opening a PR."
+  else
+    git -C "$wt" push -u origin "$branch" 2>&1 | tail -2 || die "push failed"
+    gh -C "$repo" 2>/dev/null pr create --base "$base" --head "$branch" \
+      --title "DevLoop autonomous run — $ts" --body "$body" 2>&1 | tail -2 \
+      || gh pr create --repo "$origin" --base "$base" --head "$branch" \
+           --title "DevLoop autonomous run — $ts" --body "$body" 2>&1 | tail -2 \
+      || note "branch pushed; open the PR manually (gh pr create --base $base --head $branch)"
+  fi
+
+  cleanup_run "$repo" "$base" "$branch" "$wt"
+  return "$rc"
+}
+
+# Remove the worktree + temp dir, and delete the local branch if it has no
+# commits beyond base (nothing was pushed — leftover empty branch).
+cleanup_run() {
+  local repo="$1" base="$2" branch="$3" wt="$4"
+  git -C "$repo" worktree remove --force "$wt" 2>/dev/null || true
+  rm -rf "$(dirname "$wt")" 2>/dev/null || true
+  if git -C "$repo" rev-parse --verify "$branch" >/dev/null 2>&1 \
+     && [[ -z "$(git -C "$repo" log --oneline "$base..$branch" 2>/dev/null)" ]]; then
+    git -C "$repo" branch -D "$branch" 2>/dev/null || true
+  fi
+}
+
+# Live loop: run the driver inside the sandbox container with the worktree
+# bind-mounted, so commits land on the host worktree (git is the transfer).
+run_live_loop() {
+  local wt="$1"
+  note "building sandbox image..."
+  docker build -t "$IMAGE" -f "$SANDBOX_DIR/Dockerfile" "$DEVLOOP_ROOT" >/dev/null \
+    || die "image build failed"
+  note "running the loop in the sandbox (driver: cartographer → app-audit → audit-fix)"
+  docker run --rm \
+    -e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
+    -v "$wt":/work \
+    -v devloop-cargo-registry:/root/.cargo/registry \
+    -v devloop-cargo-target:/cargo-target \
+    -e CARGO_TARGET_DIR=/cargo-target \
+    "$IMAGE" bash -euo pipefail -c '
+      # Postgres (trust auth) + pgvector + headless secret-service, like the smoke runner.
+      service postgresql start || pg_ctlcluster "$(ls /etc/postgresql)" main start || true
+      for n in $(seq 1 20); do pg_isready -h 127.0.0.1 -p 5432 && break; sleep 0.5; done
+      PGHBA="$(ls /etc/postgresql/*/main/pg_hba.conf | head -1)"
+      sed -i "s/scram-sha-256/trust/g; s/md5/trust/g; s/peer/trust/g" "$PGHBA"
+      service postgresql restart || true
+      for n in $(seq 1 20); do pg_isready -h 127.0.0.1 -p 5432 && break; sleep 0.5; done
+      su postgres -c "createdb selran_test" 2>/dev/null || true
+      export SELRAN_TEST_DATABASE_URL="postgres://postgres@127.0.0.1:5432/selran_test"
+      export DATABASE_URL="postgres://postgres@127.0.0.1:5432/selran_test"
+      export BACKEND_RS_BIND="127.0.0.1:8765"
+      export SELRAN_ALLOW_REMOTE_AI=0
+      cd /work
+      dbus-run-session -- bash -euo pipefail -c "
+        echo | gnome-keyring-daemon --unlock --components=secrets >/dev/null 2>&1 &
+        sleep 1
+        python3 /opt/devloop/driver/devloop.py --repo /work --config /work/.devloop/autoloop.toml
+      "
+    '
+}
+
+# Build a markdown PR body from the driver run report + commit log.
+build_pr_body() {
+  local report="$1" base="$2" branch="$3" commits="$4"
+  local summary="(no run report found)"
+  if [[ -f "$report" ]]; then
+    summary="$(python3 - "$report" <<'PY'
+import json, sys
+try:
+    r = json.load(open(sys.argv[1]))
+except Exception as e:
+    print(f"(could not read report: {e})"); raise SystemExit
+print(f"- **Stop reason:** {r.get('stop_reason')}")
+print(f"- **Iterations:** {r.get('iterations')}")
+print(f"- **Tokens:** {r.get('tokens')}  ·  **Cost:** ${r.get('cost_usd')}")
+print(f"- **Wall clock:** {r.get('wall_clock_s')}s  ·  **Dry run:** {r.get('dry_run')}")
+h = r.get("history") or []
+if h:
+    print("\n**Per-iteration:**")
+    for e in h:
+        if "open_before" in e:
+            print(f"  - iter {e['iter']}: {e['open_before']} open → fixed {e.get('fixed',0)}, "
+                  f"deferred {e.get('deferred',0)}, {e.get('open_after','?')} open")
+        else:
+            print(f"  - iter {e['iter']}: {e}")
+PY
+)"
+  fi
+  cat <<EOF
+## Summary
+Autonomous DevLoop run on \`$branch\` (off \`$base\`).
+
+$summary
+
+## Commits
+\`\`\`
+${commits:-(none)}
+\`\`\`
+
+## Review gate
+This branch was produced by the DevLoop driver (cartographer → app-audit → audit-fix,
+per-fix verified). Review the diff + report, then merge. Nothing was pushed to \`$base\`.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+}
+
+# --------------------------------------------------------------------------- #
+main() {
+  local cmd="${1:-}"
+  case "$cmd" in
+    run) shift; run "$@" ;;
+    ""|-h|--help) usage ;;
+    *) die "unknown command: $cmd (try: autoloop run <repo>)" ;;
+  esac
+}
+main "$@"

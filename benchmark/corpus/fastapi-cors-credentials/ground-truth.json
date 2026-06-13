@@ -1,0 +1,12 @@
+{
+  "fixture": "fastapi-cors-credentials",
+  "language": "python",
+  "pack": "fastapi",
+  "seeded": [
+    {"id": "FCORS-1", "file": "main.py", "line": 7, "category": 3, "severity": "high", "class": "cors-wildcard-credentials",
+     "hint": "allow_origins=['*'] with allow_credentials=True"}
+  ],
+  "clean_zones": [
+    {"file": "main.py", "lines": [14, 21], "reason": "explicit origin list — flagging this is a false positive"}
+  ]
+}

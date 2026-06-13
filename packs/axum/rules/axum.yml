@@ -1,0 +1,15 @@
+# axum pack — high-signal rules (offline).
+# Provenance: CorsLayer::permissive() on a loopback API was a real greenloop
+# shakedown finding (2026-06-12), blind-challenge CONFIRMED at High severity:
+# any website in the user's browser could read the unauthenticated local API.
+rules:
+  - id: axum-cors-permissive
+    languages: [rust]
+    severity: ERROR
+    message: >-
+      CorsLayer::permissive() allows any origin/method/header — on an API
+      router this lets arbitrary websites read responses (and POST) from the
+      browser, even on loopback. Use an explicit allow_origin list.
+    metadata: {category: security, cwe: "CWE-942: Permissive CORS", greenloop-category: 3, pack: axum}
+    patterns:
+      - pattern: CorsLayer::permissive()

@@ -1,0 +1,84 @@
+# Greenloop audit — GitHub Actions workflow (copy to .github/workflows/ in your repo).
+#
+# Runs a greenloop audit on a PR, publishes findings to the Security tab and
+# inline on the diff via SARIF, and (optionally) blocks merge on open
+# Critical/High. Triggered by the `greenloop-audit` label or manually.
+#
+# Prerequisites in your repo:
+#   - secret ANTHROPIC_API_KEY (greenloop runs headless via the Claude Agent SDK)
+#   - greenloop installed as a step (here: cloned + ./install.sh --all), or
+#     vendored into the repo.
+name: greenloop-audit
+
+on:
+  pull_request:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "categories to audit (e.g. '3,7' or 'all')"
+        default: "all"
+
+permissions:
+  contents: read
+  security-events: write   # required to upload SARIF to code scanning
+  pull-requests: write     # required only if you also post PR comments (Phase 6)
+
+jobs:
+  audit:
+    # label gate: only run when the PR carries the greenloop-audit label (or manual dispatch)
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'greenloop-audit'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history — greenloop needs git blame for new/pre-existing provenance
+
+      - name: Install greenloop + detectors
+        run: |
+          git clone --depth 1 https://github.com/apourmd941/selran-devloop /tmp/greenloop
+          /tmp/greenloop/install.sh --all
+          # detector readiness — install the universal trio so SAST/deps/secrets are grounded
+          pipx install semgrep || pip install semgrep || true
+          bash /tmp/greenloop/scripts/greenloop-doctor.sh || true
+
+      - name: Run greenloop audit (headless, PR-scoped)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GREENLOOP_SCOPE: ${{ github.event.inputs.scope || 'all' }}
+        run: |
+          # Drive app-audit headless via the Agent SDK loop driver. It writes
+          # .audit/status.json (with findings_list) for the steps below.
+          # See docs/ONBOARDING.md for the driver invocation; this is the hook point.
+          /tmp/greenloop/cli/autoloop audit . \
+            --base "${{ github.event.pull_request.base.sha || 'HEAD~1' }}" \
+            --scope "$GREENLOOP_SCOPE" \
+            --headless --emit-status .audit/status.json
+        continue-on-error: true   # findings are not a *job* failure; the gate below decides
+
+      - name: Convert findings to SARIF
+        if: always()
+        run: |
+          python3 /tmp/greenloop/scripts/greenloop-sarif.py \
+            --status .audit/status.json --out greenloop.sarif
+
+      - name: Upload SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: greenloop.sarif
+          category: greenloop
+
+      - name: Gate on open Critical/High
+        if: always()
+        run: |
+          # Block the merge when the audit left open Critical or High findings.
+          # Drop this step (or relax the jq filter) if you want advisory-only.
+          test -f .audit/status.json || { echo "no status.json — audit did not complete"; exit 1; }
+          crit=$(jq '.findings.open.critical // 0' .audit/status.json)
+          high=$(jq '.findings.open.high // 0' .audit/status.json)
+          echo "open: $crit critical, $high high"
+          if [ "$crit" -gt 0 ] || [ "$high" -gt 0 ]; then
+            echo "::error::greenloop gate failed — $crit critical, $high high open findings"
+            exit 1
+          fi

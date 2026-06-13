@@ -1,0 +1,280 @@
+<!doctype html>
+<!-- Greenloop audit dashboard — self-contained: no server, no CDN, no network.
+     Generated from .audit/status.json (see workflow-reporting.md §6).
+     This file is a VIEW of status.json — regenerated each round, never edited.
+     Design: technical-minimal (ui/design-system.md) — instrument, not brochure. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenloop — audit dashboard</title>
+<style>
+  :root {
+    --bg:#FBFBFA; --surface:#fff; --surface-2:#F4F4F1; --ink:#1A1C1A; --muted:#646A64;
+    --line:#E4E4DE; --accent:#1F7A4D; --accent-weak:rgba(31,122,77,.10);
+    --crit:#B3261E; --high:#BC571B; --med:#9A7B0A; --low:#2F6DB3; --info:#6B6E76;
+    --radius:8px; --radius-sm:6px; --dur:150ms; --ease:cubic-bezier(.2,0,0,1);
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#121413; --surface:#1A1D1B; --surface-2:#22262A33; --ink:#E7E9E5; --muted:#9AA09A;
+    --line:#2C302D; --accent:#4FB07C; --accent-weak:rgba(79,176,124,.14);
+    --crit:#E5685F; --high:#E0894A; --med:#CFAE3D; --low:#6EA8E0; --info:#9AA09A;
+  }}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);
+    -webkit-font-smoothing:antialiased;padding:24px 28px 64px}
+  .mono{font-family:var(--mono)}
+  .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  a{color:var(--accent);text-decoration:none}
+
+  /* header */
+  header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:20px}
+  .wm{font-size:18px;font-weight:680;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+  .wm .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-weak)}
+  .wm b{color:var(--accent);font-weight:680}
+  header .meta{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+
+  /* summary cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:11px 13px}
+  .card .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
+  .card .v{font-size:23px;font-weight:660;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+  .card .v small{font-family:var(--sans);font-size:12px;font-weight:400;color:var(--muted);margin-left:6px}
+  .ok{color:var(--accent)} .bad{color:var(--crit)}
+
+  /* toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 14px;
+    position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5}
+  .toolbar input[type=search]{font:13px var(--sans);padding:7px 11px;border:1px solid var(--line);
+    border-radius:var(--radius-sm);background:var(--surface);color:var(--ink);min-width:200px;flex:1 1 220px}
+  .toolbar input::placeholder{color:var(--muted)}
+  .fbtn{font:12px var(--sans);padding:5px 10px;border:1px solid var(--line);border-radius:99px;
+    background:var(--surface);color:var(--muted);cursor:pointer;user-select:none;transition:all var(--dur) var(--ease)}
+  .fbtn[aria-pressed=true]{color:var(--ink);border-color:currentColor}
+  .fbtn.sev-critical[aria-pressed=true]{color:var(--crit)} .fbtn.sev-high[aria-pressed=true]{color:var(--high)}
+  .fbtn.sev-medium[aria-pressed=true]{color:var(--med)} .fbtn.sev-low[aria-pressed=true]{color:var(--low)}
+  .fbtn.sev-info[aria-pressed=true]{color:var(--info)}
+  .count{font-family:var(--mono);font-size:11px;opacity:.7}
+
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:24px 0 10px}
+
+  /* board */
+  .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:11px;align-items:start}
+  .col{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);padding:9px;min-height:60px}
+  .col h3{margin:2px 4px 9px;font-size:12.5px;font-weight:620;display:flex;justify-content:space-between;align-items:center}
+  .col h3 b{font-family:var(--mono);font-weight:500;color:var(--muted)}
+  .finding{border:1px solid var(--line);border-left:3px solid var(--info);border-radius:var(--radius-sm);
+    padding:8px 10px;margin-bottom:7px;background:var(--surface);cursor:pointer;transition:border-color var(--dur) var(--ease)}
+  .finding:hover{border-color:var(--accent)}
+  .finding.b-critical{border-left-color:var(--crit)} .finding.b-high{border-left-color:var(--high)}
+  .finding.b-medium{border-left-color:var(--med)} .finding.b-low{border-left-color:var(--low)}
+  .finding.b-info{border-left-color:var(--info)}
+  .finding .t{font-size:13.5px;margin-bottom:3px;line-height:1.35}
+  .finding .loc{font-family:var(--mono);font-size:11.5px;color:var(--muted);word-break:break-all}
+  .finding.suppressed{opacity:.62}
+  .sev{display:inline-block;font-size:10px;font-weight:660;text-transform:uppercase;letter-spacing:.04em;
+    padding:1px 6px;border-radius:99px;margin-right:6px;background:var(--surface-2)}
+  .sev.critical{color:var(--crit)} .sev.high{color:var(--high)} .sev.medium{color:var(--med)}
+  .sev.low{color:var(--low)} .sev.info{color:var(--info)}
+  .empty{font-family:var(--mono);font-size:11px;color:var(--muted);padding:4px 4px 6px}
+
+  /* trend */
+  .trend{display:flex;align-items:flex-end;gap:11px;background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);padding:14px;overflow-x:auto}
+  .round{text-align:center;min-width:60px}
+  .bars{display:flex;align-items:flex-end;gap:3px;height:66px;justify-content:center}
+  .bar{width:13px;border-radius:2px 2px 0 0;min-height:2px}
+  .bar.opened{background:var(--high)} .bar.fixed{background:var(--accent)} .bar.deferred{background:var(--med)}
+  .round .lbl{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px}
+  .legend{font-size:12px;color:var(--muted);margin-top:8px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin:0 4px 0 12px;vertical-align:-1px}
+
+  footer{margin-top:24px;color:var(--muted);font-size:12px;font-family:var(--mono);
+    border-top:1px solid var(--line);padding-top:12px}
+
+  /* drill-in drawer */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;
+    transition:opacity var(--dur) var(--ease);z-index:20}
+  .scrim.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(460px,92vw);background:var(--surface);
+    border-left:1px solid var(--line);transform:translateX(100%);transition:transform var(--dur) var(--ease);
+    z-index:21;overflow-y:auto;padding:20px 22px}
+  .drawer.open{transform:none}
+  .drawer .x{position:absolute;top:14px;right:16px;border:0;background:none;color:var(--muted);
+    font-size:22px;line-height:1;cursor:pointer}
+  .drawer h4{margin:6px 36px 4px 0;font-size:17px;line-height:1.3}
+  .drawer .dloc{font-family:var(--mono);font-size:12.5px;color:var(--muted);word-break:break-all;margin-bottom:14px}
+  .drawer dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 16px;font-size:13px}
+  .drawer dt{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;align-self:center}
+  .drawer dd{margin:0;font-family:var(--mono)}
+  .drawer section{margin-bottom:16px}
+  .drawer section .eyebrow{display:block;margin-bottom:5px}
+  .drawer p{margin:0;font-size:13.5px;line-height:1.55}
+  .drawer pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:10px;overflow-x:auto;font-family:var(--mono);font-size:12px;margin:0}
+  .pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;background:var(--accent-weak);color:var(--accent)}
+</style>
+</head>
+<body>
+<script>
+window.AUDIT_DATA = {/*GREENLOOP_DATA*/};
+</script>
+<header>
+  <div class="wm"><span class="dot"></span>Greenloop <b>audit</b></div>
+  <div class="meta" id="meta"></div>
+</header>
+<div class="cards" id="cards"></div>
+
+<div class="toolbar" id="toolbar">
+  <input type="search" id="q" placeholder="search title or file…" aria-label="search findings">
+  <span id="sevfilters"></span>
+  <span class="count" id="shown"></span>
+</div>
+
+<div class="board" id="board"></div>
+
+<h2>Rounds</h2>
+<div class="trend" id="trend"></div>
+<div class="legend">per round:<i style="background:var(--high)"></i>opened
+  <i style="background:var(--accent)"></i>fixed <i style="background:var(--med)"></i>deferred</div>
+<footer id="metrics"></footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="finding detail"></aside>
+
+<script>
+(function () {
+  const d = window.AUDIT_DATA || {};
+  const SEVS = ["critical","high","medium","low","info"];
+  const COLS = ["open","fixed","deferred","dismissed","suppressed"];
+  const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const sum = o => SEVS.reduce((n,s)=>n+((o||{})[s]||0),0);
+  const $ = id => document.getElementById(id);
+
+  $("meta").textContent = [d.repo, d.round!=null?"round "+d.round:null,
+    d.head?"@ "+String(d.head).slice(0,7):null, d.updated].filter(Boolean).join("  ·  ");
+
+  // summary cards
+  const f=d.findings||{}, v=d.verification||{}, cov=d.coverage||{};
+  const openCrit=(f.open||{}).critical||0, openHigh=(f.open||{}).high||0;
+  const cards=[];
+  cards.push(["Open", `<span class="${sum(f.open)?"bad":"ok"}">${sum(f.open)}</span><small>${openCrit} crit · ${openHigh} high</small>`]);
+  cards.push(["Fixed", `<span class="ok">${sum(f.fixed)}</span>`]);
+  cards.push(["Deferred", `${sum(f.deferred)}<small>debt</small>`]);
+  if (sum(f.suppressed)) cards.push(["Suppressed", `${sum(f.suppressed)}<small>accepted</small>`]);
+  cards.push(["Coverage", cov.items_total?`${cov.items_covered}/${cov.items_total}<small>${cov.could_not_verify||0} unverif.</small>`:"—"]);
+  cards.push(["Clean room", v.clean_room==="pass"?'<span class="ok">PASS</span>':v.clean_room==="fail"?'<span class="bad">FAIL</span>':"—"]);
+  if (v.truth_scores&&v.truth_scores.median!=null) cards.push(["Truth median", `${v.truth_scores.median}<small>${v.truth_scores.min}–${v.truth_scores.max}</small>`]);
+  $("cards").innerHTML = cards.map(c=>`<div class="card"><div class="k">${c[0]}</div><div class="v">${c[1]}</div></div>`).join("");
+
+  const list = Array.isArray(d.findings_list)?d.findings_list:null;
+
+  // severity filters (only when we have a findings list to filter)
+  const active = new Set();
+  let query = "";
+  if (list) {
+    $("sevfilters").innerHTML = SEVS.map(s=>`<button class="fbtn sev-${s}" data-sev="${s}" aria-pressed="false">${s}</button>`).join("");
+    $("sevfilters").addEventListener("click", e=>{
+      const b=e.target.closest("button"); if(!b) return;
+      const s=b.dataset.sev, on=b.getAttribute("aria-pressed")==="true";
+      b.setAttribute("aria-pressed", String(!on)); on?active.delete(s):active.add(s); render();
+    });
+    $("q").addEventListener("input", e=>{ query=e.target.value.trim().toLowerCase(); render(); });
+  } else { $("toolbar").style.display="none"; }
+
+  function visible(x){
+    if (active.size && !active.has((x.severity||"info").toLowerCase())) return false;
+    if (query){ const hay=((x.title||"")+" "+(x.location||"")+" "+(x.class||x.type||"")).toLowerCase(); if(!hay.includes(query)) return false; }
+    return true;
+  }
+
+  function render(){
+    let shown=0, total=0;
+    $("board").innerHTML = COLS.map(col=>{
+      const counts=f[col]||{};
+      if (col==="suppressed" && !sum(counts) && !(list&&list.some(x=>x.status==="suppressed"))) return "";
+      let body, n;
+      if (list){
+        const items=list.filter(x=>x.status===col); total+=items.length;
+        const vis=items.filter(visible); shown+=vis.length; n=vis.length;
+        body = vis.map(x=>{
+          const sev=SEVS.includes((x.severity||"").toLowerCase())?x.severity.toLowerCase():"info";
+          return `<div class="finding b-${sev} ${col==="suppressed"?"suppressed":""}" data-id="${esc(x.id)}" tabindex="0" role="button">`+
+            `<div class="t"><span class="sev ${sev}">${sev}</span>${esc(x.title||x.class||"finding")}</div>`+
+            `<div class="loc">${esc(x.location||"—")}${x.confidence!=null?" · conf "+x.confidence:""}</div></div>`;
+        }).join("") || `<div class="empty">none</div>`;
+      } else {
+        n=sum(counts);
+        body = `<div>`+SEVS.filter(s=>counts[s]).map(s=>`<span class="sev ${s}">${s} ${counts[s]}</span>`).join(" ")+`</div>`+(n?"":`<div class="empty">none</div>`);
+      }
+      return `<div class="col"><h3>${col[0].toUpperCase()+col.slice(1)} <b>${n}</b></h3>${body}</div>`;
+    }).join("");
+    if (list) $("shown").textContent = (shown<total?`${shown} / ${total} shown`:`${total} findings`);
+    bindCards();
+  }
+
+  // drill-in drawer
+  const byId = {}; (list||[]).forEach(x=>{ byId[x.id]=x; });
+  function openDrawer(x){
+    if(!x) return;
+    const sev=(x.severity||"info").toLowerCase();
+    const sup=x.suppression;
+    $("drawer").innerHTML =
+      `<button class="x" aria-label="close" onclick="window.__glClose()">×</button>`+
+      `<h4><span class="sev ${sev}">${sev}</span>${esc(x.title||x.class||"finding")}</h4>`+
+      `<div class="dloc">${esc(x.location||"—")}</div>`+
+      `<dl>`+
+        (x.id!=null?`<dt>id</dt><dd>${esc(x.id)}</dd>`:"")+
+        (x.category!=null?`<dt>category</dt><dd>${esc(x.category)}</dd>`:"")+
+        (x.class||x.type?`<dt>class</dt><dd>${esc(x.class||x.type)}</dd>`:"")+
+        (x.confidence!=null?`<dt>confidence</dt><dd>${esc(x.confidence)}</dd>`:"")+
+        (x.provenance?`<dt>provenance</dt><dd>${esc(x.provenance)}</dd>`:"")+
+        `<dt>status</dt><dd>${esc(x.status||"open")}</dd>`+
+      `</dl>`+
+      (x.description?`<section><span class="eyebrow">Description</span><p>${esc(x.description)}</p></section>`:"")+
+      (x.evidence?`<section><span class="eyebrow">Evidence</span>${Array.isArray(x.evidence)?"<pre>"+esc(x.evidence.join("\n"))+"</pre>":"<p>"+esc(x.evidence)+"</p>"}</section>`:"")+
+      (x.snippet?`<section><span class="eyebrow">Code</span><pre>${esc(x.snippet)}</pre></section>`:"")+
+      (x.suggested_fix?`<section><span class="eyebrow">Suggested fix</span><p>${esc(x.suggested_fix)}</p></section>`:"")+
+      (sup?`<section><span class="eyebrow">Suppression</span><p><span class="pill">${esc(sup.source||"suppressed")}</span> ${esc(sup.reason||"")}${sup.expires?" — expires "+esc(sup.expires):""}</p></section>`:"")+
+      (!x.description&&!x.evidence&&!x.suggested_fix?`<section><p style="color:var(--muted)">No extra detail in status.json for this finding. Add <span class="mono">description</span> / <span class="mono">evidence</span> / <span class="mono">suggested_fix</span> to findings_list for a fuller view — see AUDIT_LOG.md.</p></section>`:"");
+    $("scrim").classList.add("open"); $("drawer").classList.add("open");
+  }
+  window.__glClose=function(){ $("scrim").classList.remove("open"); $("drawer").classList.remove("open"); };
+  $("scrim").addEventListener("click", window.__glClose);
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape") window.__glClose(); });
+  function bindCards(){
+    document.querySelectorAll(".finding[data-id]").forEach(el=>{
+      const open=()=>openDrawer(byId[el.dataset.id]);
+      el.onclick=open;
+      el.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();open();} };
+    });
+  }
+
+  render();
+
+  // trend
+  const hist=(d.history||[]).slice();
+  if (d.round!=null) hist.push({round:d.round,opened:sum(f.open)+sum(f.fixed),fixed:sum(f.fixed),deferred:sum(f.deferred),current:true});
+  const max=Math.max(1,...hist.flatMap(h=>[h.opened||0,h.fixed||0,h.deferred||0]));
+  $("trend").innerHTML = hist.map(h=>{
+    const bar=k=>`<div class="bar ${k}" style="height:${Math.round(((h[k]||0)/max)*66)}px" title="${k}: ${h[k]||0}"></div>`;
+    return `<div class="round"><div class="bars">${bar("opened")}${bar("fixed")}${bar("deferred")}</div><div class="lbl">r${h.round}${h.current?"·now":""}</div></div>`;
+  }).join("") || '<span class="empty">no history yet</span>';
+
+  // metrics footer
+  const m=d.metrics||{};
+  $("metrics").textContent = [
+    m.wall_clock_min!=null?`wall-clock ${m.wall_clock_min} min`:null,
+    m.execution_mode?`${m.execution_mode}${m.reviewers?" × "+m.reviewers+" reviewers":""}`:null,
+    m.challenged!=null?`challenged ${m.challenged} / refuted ${m.refuted??"?"}`:null,
+    m.tokens!=null?`tokens ${m.tokens}`:"tokens: not exposed by host",
+    "greenloop — view of .audit/status.json"
+  ].filter(Boolean).join("  ·  ");
+})();
+</script>
+</body>
+</html>

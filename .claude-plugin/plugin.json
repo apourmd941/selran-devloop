@@ -1,0 +1,23 @@
+{
+  "name": "greenloop",
+  "description": "Selran Greenloop \u2014 the loop that runs until green. Point it at any codebase and it maps the architecture, reconstructs the spec, audits against ten quality categories, fixes what it finds, and adversarially re-verifies \u2014 repeating until nothing is left to fix. Five skills: cartographer, spec-bootstrap, pre-commit-verification, app-audit, audit-fix. Free for personal, non-commercial use.",
+  "version": "1.17.0",
+  "author": {
+    "name": "Aidin Eslampour",
+    "email": "aidin.eslampour@selran.ai",
+    "url": "https://github.com/apourmd941"
+  },
+  "homepage": "https://github.com/apourmd941/selran-devloop",
+  "repository": "https://github.com/apourmd941/selran-devloop",
+  "license": "SEE LICENSE IN LICENSE",
+  "keywords": [
+    "audit",
+    "code-review",
+    "verification",
+    "testing",
+    "codemap",
+    "spec",
+    "methodology",
+    "selran"
+  ]
+}

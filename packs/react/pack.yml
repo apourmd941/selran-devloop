@@ -1,0 +1,8 @@
+name: react
+description: React/JSX framework depth — XSS sinks, unsafe URL props
+activates_on:
+  - "package.json dependencies contain: react"
+contents:
+  rules: rules/react.yml
+  checklist: checklist.md
+proof_fixtures: [react-dangerous-html]

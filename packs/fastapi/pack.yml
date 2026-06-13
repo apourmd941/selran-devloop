@@ -1,0 +1,8 @@
+name: fastapi
+description: FastAPI framework depth — CORS misconfig, unsafe deserialization
+activates_on:
+  - "pyproject.toml/requirements contain: fastapi"
+contents:
+  rules: rules/fastapi.yml
+  checklist: checklist.md
+proof_fixtures: [fastapi-cors-credentials]

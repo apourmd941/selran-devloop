@@ -1,0 +1,50 @@
+# Greenloop audit — GitLab CI template (include into your .gitlab-ci.yml).
+#
+# Runs a greenloop audit on a merge request, exposes findings as a Code Quality
+# report (rendered inline on the MR diff) and as a downloadable SARIF artifact,
+# and optionally fails the pipeline on open Critical/High.
+#
+# Prerequisites:
+#   - CI/CD variable ANTHROPIC_API_KEY (masked) — greenloop runs headless
+#   - run the job in a stage you control (here: `test`)
+#
+# Usage in .gitlab-ci.yml:
+#   include:
+#     - local: 'ci/gitlab/greenloop-ci.yml'
+
+greenloop-audit:
+  stage: test
+  image: python:3.12-slim
+  rules:
+    # run on MRs, or when the label/var is set — adjust to taste
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$GREENLOOP_AUDIT == "1"'
+  variables:
+    GIT_DEPTH: 0   # full history for git-blame provenance
+  before_script:
+    - apt-get update && apt-get install -y git jq curl
+    - git clone --depth 1 https://github.com/apourmd941/selran-devloop /tmp/greenloop
+    - /tmp/greenloop/install.sh --all
+    - pip install semgrep || true
+    - bash /tmp/greenloop/scripts/greenloop-doctor.sh || true
+  script:
+    - |
+      /tmp/greenloop/cli/autoloop audit . \
+        --base "${CI_MERGE_REQUEST_DIFF_BASE_SHA:-HEAD~1}" \
+        --scope "${GREENLOOP_SCOPE:-all}" \
+        --headless --emit-status .audit/status.json || true
+    - python3 /tmp/greenloop/scripts/greenloop-sarif.py --status .audit/status.json --out greenloop.sarif
+    # SARIF -> GitLab Code Quality (so findings render inline on the MR diff)
+    - python3 /tmp/greenloop/scripts/greenloop-sarif.py --status .audit/status.json --gitlab-codequality gl-code-quality.json || true
+    - |
+      crit=$(jq '.findings.open.critical // 0' .audit/status.json)
+      high=$(jq '.findings.open.high // 0' .audit/status.json)
+      echo "open: $crit critical, $high high"
+      if [ "$crit" -gt 0 ] || [ "$high" -gt 0 ]; then
+        echo "greenloop gate failed — $crit critical, $high high open findings"; exit 1
+      fi
+  artifacts:
+    when: always
+    paths: [greenloop.sarif, .audit/status.json]
+    reports:
+      codequality: gl-code-quality.json

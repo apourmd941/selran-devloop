@@ -1,0 +1,90 @@
+# Greenloop bundled semgrep ruleset — high-signal, offline, zero-network.
+#
+# Why this exists: `semgrep --config auto` pulls rules from the semgrep registry
+# over the network, which is non-deterministic and unavailable offline / in CI
+# sandboxes. This is a small, curated, OFFLINE baseline that catches the core
+# bug classes greenloop cares about, so SAST grounding works on a bare machine.
+#
+#   semgrep --config skills/app-audit/references/detectors/greenloop.yml --json .
+#
+# It is a STARTER set, not a replacement for `--config auto` when the network is
+# available — run both when you can. Each repo's learned rules (G6) live
+# separately in .audit/learned-rules/ and run alongside this.
+#
+# Coverage maps to the benchmark fixtures so the harness can verify SAST works:
+#   py-sql-injection  -> python-sql-string-format
+#   ts-secret-in-log  -> js-secret-in-log
+#   (rs-missing-tx is a judgement finding — no reliable syntactic signature)
+rules:
+  - id: python-sql-string-format
+    languages: [python]
+    severity: ERROR
+    message: >-
+      SQL built with string interpolation (f-string / .format / %) passed to
+      execute(). Use parameterized queries — pass values as the second argument.
+    metadata: {category: security, cwe: "CWE-89: SQL Injection", greenloop-category: 3}
+    patterns:
+      - pattern-either:
+          - pattern: $CUR.execute(f"...", ...)
+          - pattern: $CUR.execute("...".format(...), ...)
+          - pattern: $CUR.execute("..." % ..., ...)
+          - pattern: $CUR.executemany(f"...", ...)
+
+  - id: python-subprocess-shell-true
+    languages: [python]
+    severity: ERROR
+    message: >-
+      subprocess call with shell=True. If any argument is attacker-influenced
+      this is command injection. Pass an argv list and drop shell=True.
+    metadata: {category: security, cwe: "CWE-78: OS Command Injection", greenloop-category: 3}
+    patterns:
+      - pattern-either:
+          - pattern: subprocess.run(..., shell=True, ...)
+          - pattern: subprocess.Popen(..., shell=True, ...)
+          - pattern: subprocess.call(..., shell=True, ...)
+          - pattern: os.system(...)
+
+  - id: python-yaml-unsafe-load
+    languages: [python]
+    severity: ERROR
+    message: >-
+      yaml.load without SafeLoader can construct arbitrary Python objects from
+      untrusted input. Use yaml.safe_load (or Loader=yaml.SafeLoader).
+    metadata: {category: security, cwe: "CWE-502: Deserialization", greenloop-category: 3}
+    patterns:
+      - pattern: yaml.load($X)
+      - pattern-not: yaml.load($X, Loader=yaml.SafeLoader)
+      - pattern-not: yaml.load($X, Loader=yaml.CSafeLoader)
+
+  - id: js-secret-in-log
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >-
+      A credential-looking value is written to a log. Tokens/passwords/secrets
+      in logs leak to anyone with log access. Redact before logging.
+    metadata: {category: security, cwe: "CWE-532: Insertion of Sensitive Info into Log", greenloop-category: 3}
+    patterns:
+      - pattern-either:
+          - pattern: console.log(..., $TOKEN, ...)
+          - pattern: console.error(..., $TOKEN, ...)
+          - pattern: 'console.log(`...${$TOKEN}...`)'
+      # Anchored to an identifier shape so the WHOLE credential value being
+      # logged matches (`token`, `authToken`) but a redacted slice does not
+      # (`token.slice(0,4)` has a `.`, so `\w*$` fails) — no FP on redaction.
+      - metavariable-regex:
+          metavariable: $TOKEN
+          regex: ^(?i)\w*(token|secret|password|passwd|api_?key|bearer|credential)\w*$
+
+  - id: js-eval-on-variable
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      eval() / new Function() on a non-literal value executes arbitrary code if
+      the input is influenced by a user. Avoid eval; parse explicitly.
+    metadata: {category: security, cwe: "CWE-95: Eval Injection", greenloop-category: 3}
+    patterns:
+      - pattern-either:
+          - pattern: eval($X)
+          - pattern: new Function($X)
+      - pattern-not: eval("...")
+      - pattern-not: new Function("...")

@@ -1,0 +1,12 @@
+{
+  "fixture": "react-dangerous-html",
+  "language": "typescript",
+  "pack": "react",
+  "seeded": [
+    {"id": "RXSS-1", "file": "Article.tsx", "line": 4, "category": 3, "severity": "high", "class": "xss-dangerous-html",
+     "hint": "non-literal __html from props"}
+  ],
+  "clean_zones": [
+    {"file": "Article.tsx", "lines": [7, 10], "reason": "literal string — flagging this is a false positive"}
+  ]
+}

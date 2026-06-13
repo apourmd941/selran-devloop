@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-20T21:22:08Z",
+  "summary": {
+    "duplicate_basenames": 2,
+    "suspicious_names": 0,
+    "backup_directories": 0,
+    "orphan_files": 6,
+    "near_duplicates": 0,
+    "stale_build_output": 0,
+    "canonical_designations": 0
+  },
+  "duplicate_basenames": [
+    {
+      "basename": "README.md",
+      "paths": [
+        "README.md",
+        "cli/README.md",
+        "driver/README.md",
+        "sandbox/README.md"
+      ],
+      "imported_count": 0,
+      "severity": "medium",
+      "concern": "`README.md` appears in 4 locations."
+    },
+    {
+      "basename": "SKILL.md",
+      "paths": [
+        "skills/app-audit/SKILL.md",
+        "skills/audit-fix/SKILL.md",
+        "skills/cartographer/SKILL.md",
+        "skills/pre-commit-verification/SKILL.md"
+      ],
+      "imported_count": 0,
+      "severity": "medium",
+      "concern": "`SKILL.md` appears in 4 locations."
+    }
+  ],
+  "suspicious_names": [],
+  "backup_directories": [],
+  "orphan_files": [
+    {
+      "path": "driver/devloop.py",
+      "severity": "low",
+      "concern": "Source file has no `imported_by` entries; may be unreachable.",
+      "is_entry_point": false,
+      "suggested_action": "Check whether this file is dynamically loaded."
+    },
+    {
+      "path": "skills/cartographer/references/_build.py",
+      "severity": "low",
+      "concern": "Source file has no `imported_by` entries; may be unreachable.",
+      "is_entry_point": false,
+      "suggested_action": "Check whether this file is dynamically loaded."
+    },
+    {
+      "path": "skills/pre-commit-verification/references/harness/onboarding_clickthrough.spec.ts",
+      "severity": "low",
+      "concern": "Source file has no `imported_by` entries; may be unreachable.",
+      "is_entry_point": false,
+      "suggested_action": "Check whether this file is dynamically loaded."
+    },
+    {
+      "path": "skills/pre-commit-verification/references/harness/provider_mock_test.rs",
+      "severity": "low",
+      "concern": "Source file has no `imported_by` entries; may be unreachable.",
+      "is_entry_point": false,
+      "suggested_action": "Check whether this file is dynamically loaded."
+    },
+    {
+      "path": "skills/pre-commit-verification/references/harness/smoke_http_health.rs",
+      "severity": "low",
+      "concern": "Source file has no `imported_by` entries; may be unreachable.",
+      "is_entry_point": false,
+      "suggested_action": "Check whether this file is dynamically loaded."
+    },
+    {
+      "path": "skills/pre-commit-verification/references/harness/webview_e2e.spec.ts",
+      "severity": "low",
+      "concern": "Source file has no `imported_by` entries; may be unreachable.",
+      "is_entry_point": false,
+      "suggested_action": "Check whether this file is dynamically loaded."
+    }
+  ],
+  "near_duplicates": [],
+  "stale_build_output": [],
+  "canonical_designations": []
+}

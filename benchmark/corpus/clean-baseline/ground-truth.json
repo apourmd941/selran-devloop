@@ -1,0 +1,8 @@
+{
+  "fixture": "clean-baseline",
+  "language": "python",
+  "seeded": [],
+  "clean_zones": [
+    {"file": "util.py", "lines": [1, 15], "reason": "entirely clean — any finding here is a pure false positive"}
+  ]
+}

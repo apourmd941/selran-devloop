@@ -1,0 +1,11 @@
+{
+  "fixture": "rs-missing-tx",
+  "language": "rust",
+  "seeded": [
+    {"id": "TX-1", "file": "store.rs", "line": 8, "category": 1, "severity": "high", "class": "missing-transaction",
+     "hint": "two writes (lines 8-9) with no transaction wrapping the pair"}
+  ],
+  "clean_zones": [
+    {"file": "store.rs", "lines": [14, 19], "reason": "wrapped in a transaction — flagging this is a false positive"}
+  ]
+}

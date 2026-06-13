@@ -1,0 +1,71 @@
+{
+  "py-sql-injection": {
+    "findings": [
+      {
+        "file": "app.py",
+        "line": 8,
+        "category": 3,
+        "severity": "critical",
+        "title": "SQL injection via f-string"
+      }
+    ]
+  },
+  "ts-secret-in-log": {
+    "findings": [
+      {
+        "file": "auth.ts",
+        "line": 5,
+        "category": 3,
+        "severity": "high",
+        "title": "Bearer token written to log"
+      }
+    ]
+  },
+  "rs-missing-tx": {
+    "findings": [
+      {
+        "file": "store.rs",
+        "line": 9,
+        "category": 1,
+        "severity": "high",
+        "title": "Transfer not wrapped in a transaction"
+      }
+    ]
+  },
+  "clean-baseline": {
+    "findings": []
+  },
+  "react-dangerous-html": {
+    "findings": [
+      {
+        "file": "Article.tsx",
+        "line": 4,
+        "category": 3,
+        "severity": "high",
+        "title": "XSS via dangerouslySetInnerHTML (pack:react)"
+      }
+    ]
+  },
+  "fastapi-cors-credentials": {
+    "findings": [
+      {
+        "file": "main.py",
+        "line": 7,
+        "category": 3,
+        "severity": "high",
+        "title": "CORS wildcard with credentials (pack:fastapi)"
+      }
+    ]
+  },
+  "axum-cors-permissive": {
+    "findings": [
+      {
+        "file": "server.rs",
+        "line": 8,
+        "category": 3,
+        "severity": "high",
+        "title": "CorsLayer::permissive on API router (pack:axum)"
+      }
+    ]
+  }
+}

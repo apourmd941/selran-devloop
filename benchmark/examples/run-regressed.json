@@ -1,0 +1,20 @@
+{
+  "py-sql-injection": {
+    "findings": [
+      {"file": "app.py", "line": 8, "category": 3, "severity": "low", "title": "SQL injection (under-graded to Low)"}
+    ]
+  },
+  "ts-secret-in-log": {
+    "findings": []
+  },
+  "rs-missing-tx": {
+    "findings": [
+      {"file": "store.rs", "line": 9, "category": 1, "severity": "high", "title": "Transfer not wrapped in a transaction"}
+    ]
+  },
+  "clean-baseline": {
+    "findings": [
+      {"file": "util.py", "line": 8, "category": 3, "severity": "medium", "title": "Hallucinated issue in clean code"}
+    ]
+  }
+}

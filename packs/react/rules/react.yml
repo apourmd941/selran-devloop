@@ -1,0 +1,14 @@
+# react pack — high-signal JSX security rules (offline)
+rules:
+  - id: react-dangerously-set-inner-html-nonliteral
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      A non-literal value flows into an {__html: ...} object (React's
+      dangerouslySetInnerHTML sink). If it carries user or remote content this
+      is XSS. Sanitize (e.g. DOMPurify) or render as text.
+    metadata: {category: security, cwe: "CWE-79: XSS", greenloop-category: 3, pack: react}
+    patterns:
+      - pattern: '{ __html: $X }'
+      - pattern-not: '{ __html: "..." }'
+      - pattern-not: '{ __html: `...` }'

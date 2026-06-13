@@ -1,0 +1,11 @@
+{
+  "fixture": "ts-secret-in-log",
+  "language": "typescript",
+  "seeded": [
+    {"id": "LOG-1", "file": "auth.ts", "line": 5, "category": 3, "severity": "high", "class": "secret-in-log",
+     "hint": "full token in console.log"}
+  ],
+  "clean_zones": [
+    {"file": "auth.ts", "lines": [9, 12], "reason": "redacted prefix only — flagging this is a false positive"}
+  ]
+}

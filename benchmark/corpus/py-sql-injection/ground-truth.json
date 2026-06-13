@@ -1,0 +1,11 @@
+{
+  "fixture": "py-sql-injection",
+  "language": "python",
+  "seeded": [
+    {"id": "SQLI-1", "file": "app.py", "line": 8, "category": 3, "severity": "critical", "class": "sql-injection",
+     "hint": "f-string interpolation into cursor.execute"}
+  ],
+  "clean_zones": [
+    {"file": "app.py", "lines": [12, 16], "reason": "parameterized query — flagging this is a false positive"}
+  ]
+}
